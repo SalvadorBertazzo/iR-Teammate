@@ -18,18 +18,20 @@ import (
 )
 
 type AuthService struct {
-	repository *repository.UserRepository
-	oauthCfg   *oauth2.Config
-	jwtSecret  []byte
-	jwtExpiry  time.Duration
+	userRepository        *repository.UserRepository
+	userIRacingRepository *repository.UserIRacingRepository
+	oauthCfg              *oauth2.Config
+	jwtSecret             []byte
+	jwtExpiry             time.Duration
 }
 
-func NewAuthService(repository *repository.UserRepository, oauthCfg *oauth2.Config, jwtConfig config.JWTConfig) *AuthService {
+func NewAuthService(userRepository *repository.UserRepository, userIRacingRepository *repository.UserIRacingRepository, oauthCfg *oauth2.Config, jwtConfig config.JWTConfig) *AuthService {
 	return &AuthService{
-		repository: repository,
-		oauthCfg:   oauthCfg,
-		jwtSecret:  []byte(jwtConfig.Secret),
-		jwtExpiry:  jwtConfig.Expiry,
+		userRepository:        userRepository,
+		userIRacingRepository: userIRacingRepository,
+		oauthCfg:              oauthCfg,
+		jwtSecret:             []byte(jwtConfig.Secret),
+		jwtExpiry:             jwtConfig.Expiry,
 	}
 }
 
@@ -80,9 +82,30 @@ func (s *AuthService) HandleDiscordCallback(ctx context.Context, code, state, ex
 	}
 
 	// Upsert user
-	saved, err := s.repository.UpsertByDiscordID(ctx, usr)
+	saved, err := s.userRepository.UpsertByDiscordID(ctx, usr)
 	if err != nil {
 		return "", fmt.Errorf("upsert user failed: %w", err)
+	}
+
+	// Auto-create user_iracing if it doesn't exist
+	existingIRacing, err := s.userIRacingRepository.GetByUserID(ctx, saved.ID)
+	if err != nil {
+		return "", fmt.Errorf("check user_iracing failed: %w", err)
+	}
+	if existingIRacing == nil {
+		displayName := discordUser.Username
+		if discordUser.GlobalName != "" {
+			displayName = discordUser.GlobalName
+		}
+
+		newIRacing := &model.UserIRacing{
+			UserID:      saved.ID,
+			DisplayName: displayName,
+		}
+		_, err = s.userIRacingRepository.Create(ctx, newIRacing)
+		if err != nil {
+			return "", fmt.Errorf("create user_iracing failed: %w", err)
+		}
 	}
 
 	// Generate JWT

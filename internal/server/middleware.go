@@ -33,7 +33,12 @@ func JWTAuthMiddleware(jwtSecret []byte) echo.MiddlewareFunc {
 			}
 
 			// Save claims in the context for later use
-			c.Set("user_id", claims["sub"])
+			sub, ok := claims["sub"].(float64)
+			if !ok {
+				return c.String(http.StatusUnauthorized, "invalid user_id in token")
+			}
+			c.Set("user_id", int64(sub))
+
 			c.Set("discord_id", claims["discord_id"])
 
 			return next(c)

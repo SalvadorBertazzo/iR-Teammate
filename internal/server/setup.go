@@ -14,10 +14,11 @@ import (
 )
 
 type Dependencies struct {
-	Config      config.Config
-	DB          *sql.DB
-	SQLxDB      *sqlx.DB
-	AuthHandler *handler.AuthHandler
+	Config         config.Config
+	DB             *sql.DB
+	SQLxDB         *sqlx.DB
+	AuthHandler    *handler.AuthHandler
+	ProfileHandler *handler.ProfileHandler
 }
 
 func Setup(config config.Config) (*Dependencies, error) {
@@ -29,16 +30,29 @@ func Setup(config config.Config) (*Dependencies, error) {
 
 	sqlxDB := sqlx.NewDb(db, "sqlite3")
 
+	// Discord OAuth configuration
 	oauthCfg := auth.NewDiscordAuth(config.Discord)
+
+	// Repositories
 	userRepository := repository.NewUserRepository(sqlxDB)
-	authService := service.NewAuthService(userRepository, oauthCfg, config.JWT)
+	userIRacingRepository := repository.NewUserIRacingRepository(sqlxDB)
+	userIRacingLicenseRepository := repository.NewUserIRacingLicenseRepository(sqlxDB)
+	userLanguageRepository := repository.NewUserLanguageRepository(sqlxDB)
+
+	// Services
+	authService := service.NewAuthService(userRepository, userIRacingRepository, oauthCfg, config.JWT)
+	profileService := service.NewProfileService(userIRacingRepository, userIRacingLicenseRepository, userLanguageRepository)
+
+	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
+	profileHandler := handler.NewProfileHandler(profileService)
 
 	return &Dependencies{
-		Config:      config,
-		DB:          db,
-		SQLxDB:      sqlxDB,
-		AuthHandler: authHandler,
+		Config:         config,
+		DB:             db,
+		SQLxDB:         sqlxDB,
+		AuthHandler:    authHandler,
+		ProfileHandler: profileHandler,
 	}, nil
 }
 

@@ -11,3 +11,4 @@ type User struct {
 	Avatar     *string   `db:"avatar" json:"avatar,omitempty"`
 	CreatedAt  time.Time `db:"created_at" json:"created_at"`
 }
+
