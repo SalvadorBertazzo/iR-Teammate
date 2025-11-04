@@ -15,28 +15,22 @@ CREATE TABLE IF NOT EXISTS posts (
   track_id          INTEGER,
 
   -- iRacing category
-  category          TEXT    NOT NULL,
-  CHECK (category IN ('sports_car','formula','oval','dirt_road','dirt_oval')),
+  category          TEXT    NOT NULL CHECK (category IN ('sports_car','formula','oval','dirt_road','dirt_oval')),
 
   -- Minimum requirements for this category
-  min_license_level TEXT    NOT NULL DEFAULT 'R',
-  CHECK (min_license_level IN ('R','D','C','B','A','P')),
-  min_irating       INTEGER NOT NULL DEFAULT 0,
-  CHECK (min_irating >= 0),
+  min_license_level TEXT    NOT NULL DEFAULT 'R' CHECK (min_license_level IN ('R','D','C','B','A','P')),
+  min_irating       INTEGER NOT NULL DEFAULT 0 CHECK (min_irating >= 0),
 
   -- Logistics
   timezone          TEXT    NOT NULL DEFAULT 'UTC',
   event_start_at    DATETIME NULL,
 
   -- Slots
-  slots_total       INTEGER NOT NULL DEFAULT 1,
-  CHECK (slots_total > 0),
+  slots_total       INTEGER NOT NULL DEFAULT 1 CHECK (slots_total > 0),
 
   -- Status and visibility
-  status            TEXT    NOT NULL DEFAULT 'open',
-  CHECK (status IN ('open','filled','closed','cancelled')),
-  is_public         INTEGER NOT NULL DEFAULT 1,
-  CHECK (is_public IN (0, 1)),
+  status            TEXT    NOT NULL DEFAULT 'open' CHECK (status IN ('open','filled','closed','cancelled')),
+  is_public         INTEGER NOT NULL DEFAULT 1 CHECK (is_public IN (0, 1)),
 
   -- Optional contact hint
   contact_hint      TEXT    NOT NULL DEFAULT '',
@@ -51,7 +45,6 @@ CREATE TABLE IF NOT EXISTS posts (
   FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE SET NULL
 );
 
--- Indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_posts_category_status ON posts(category, status);
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);

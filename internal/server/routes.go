@@ -17,14 +17,15 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	authHandler := dependencies.AuthHandler
 	profileHandler := dependencies.ProfileHandler
 	catalogHandler := dependencies.CatalogHandler
+	postHandler := dependencies.PostHandler
 
 	// Auth routes (public)
-	authPublic := e.Group("/auth")                                   // Public auth route GROUP
+	authPublic := e.Group("/auth")                                   // Public auth route GROUP (Base: http://localhost:8080/auth)
 	authPublic.GET("/discord/login", authHandler.DiscordLogin)       // Start Discord OAuth login (Example: GET http://localhost:8080/auth/discord/login)
 	authPublic.GET("/discord/callback", authHandler.DiscordCallback) // Discord OAuth callback (Example: GET http://localhost:8080/auth/discord/callback)
 
 	// Auth routes (protected)
-	authProtected := e.Group("/auth", jwtMiddleware)  // Protected auth route GROUP
+	authProtected := e.Group("/auth", jwtMiddleware)  // Protected auth route GROUP (Base: http://localhost:8080/auth)
 	authProtected.GET("/me", authHandler.Me)          // Get current user from JWT (Example: GET http://localhost:8080/auth/me)
 	authProtected.POST("/logout", authHandler.Logout) // Clear session cookie (Example: POST http://localhost:8080/auth/logout)
 
@@ -51,4 +52,15 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	catalogs.GET("/events", catalogHandler.GetEvents)          // List all events (Example: GET http://localhost:8080/catalogs/events)
 	catalogs.GET("/tracks", catalogHandler.GetTracks)          // List all tracks (Example: GET http://localhost:8080/catalogs/tracks)
 	catalogs.GET("/languages", catalogHandler.GetLanguages)    // List all languages (Example: GET http://localhost:8080/catalogs/languages)
+
+	// Posts routes
+	postsPublic := e.Group("/posts")            // Public posts route GROUP (Base: http://localhost:8080/posts)
+	postsPublic.GET("", postHandler.ListPublic) // List public open posts (Example: GET http://localhost:8080/posts)
+	postsPublic.GET("/:id", postHandler.Get)    // Get post by id (Example: GET http://localhost:8080/posts/1)
+
+	postsProtected := e.Group("/posts", jwtMiddleware) // Protected posts route GROUP
+	postsProtected.POST("", postHandler.Create)        // Create post (Example: POST http://localhost:8080/posts)
+	postsProtected.GET("/mine", postHandler.ListMine)  // List current user's posts (Example: GET http://localhost:8080/posts/mine)
+	postsProtected.PUT("/:id", postHandler.Update)     // Update post by id (Example: PUT http://localhost:8080/posts/1)
+	postsProtected.DELETE("/:id", postHandler.Delete)  // Delete post by id (Example: DELETE http://localhost:8080/posts/1)
 }

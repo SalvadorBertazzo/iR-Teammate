@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"sort"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -15,13 +16,26 @@ import (
 var migrationsFS embed.FS
 
 func InitDatabase(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	// Ensure SQLite foreign keys are enabled on all connections via DSN
+	dsn := dbPath
+	if strings.Contains(dbPath, "?") {
+		dsn = dbPath + "&_foreign_keys=on"
+	} else {
+		dsn = dbPath + "?_foreign_keys=on"
+	}
+
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	// Extra safety: set pragma on the current connection as well
+	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+		return nil, fmt.Errorf("failed to enable foreign_keys pragma: %w", err)
 	}
 
 	if err := runMigrations(db); err != nil {
@@ -38,6 +52,9 @@ func runMigrations(db *sql.DB) error {
 	}
 
 	log.Println("Starting database migrations...")
+
+	// Ensure deterministic order by filename (e.g., 001_..., 002_...)
+	sort.Slice(migrations, func(i, j int) bool { return migrations[i].Name() < migrations[j].Name() })
 
 	for _, migration := range migrations {
 		if migration.IsDir() {

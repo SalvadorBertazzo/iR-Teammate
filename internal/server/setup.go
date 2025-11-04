@@ -20,6 +20,7 @@ type Dependencies struct {
 	AuthHandler    *handler.AuthHandler
 	ProfileHandler *handler.ProfileHandler
 	CatalogHandler *handler.CatalogHandler
+	PostHandler    *handler.PostHandler
 }
 
 func Setup(config config.Config) (*Dependencies, error) {
@@ -44,16 +45,31 @@ func Setup(config config.Config) (*Dependencies, error) {
 	carRepository := repository.NewCarRepository(sqlxDB)
 	eventRepository := repository.NewEventRepository(sqlxDB)
 	trackRepository := repository.NewTrackRepository(sqlxDB)
+	postRepository := repository.NewPostRepository(sqlxDB)
+	postCarRepository := repository.NewPostCarRepository(sqlxDB)
+	postLanguageRepository := repository.NewPostLanguageRepository(sqlxDB)
 
 	// Services
 	authService := service.NewAuthService(userRepository, userIRacingRepository, oauthCfg, config.JWT)
 	profileService := service.NewProfileService(userIRacingRepository, userIRacingLicenseRepository, userLanguageRepository)
 	catalogService := service.NewCatalogService(seriesRepository, carClassRepository, carRepository, eventRepository, trackRepository, userLanguageRepository)
+	postService := service.NewPostService(
+		postRepository,
+		postCarRepository,
+		postLanguageRepository,
+		seriesRepository,
+		carClassRepository,
+		carRepository,
+		eventRepository,
+		trackRepository,
+		userLanguageRepository,
+	)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
 	profileHandler := handler.NewProfileHandler(profileService)
 	catalogHandler := handler.NewCatalogHandler(catalogService)
+	postHandler := handler.NewPostHandler(postService)
 
 	return &Dependencies{
 		Config:         config,
@@ -62,6 +78,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 		AuthHandler:    authHandler,
 		ProfileHandler: profileHandler,
 		CatalogHandler: catalogHandler,
+		PostHandler:    postHandler,
 	}, nil
 }
 
