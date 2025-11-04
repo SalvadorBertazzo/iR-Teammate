@@ -16,30 +16,39 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	// Handlers
 	authHandler := dependencies.AuthHandler
 	profileHandler := dependencies.ProfileHandler
+	catalogHandler := dependencies.CatalogHandler
 
 	// Auth routes (public)
-	authPublic := e.Group("/auth")
-	authPublic.GET("/discord/login", authHandler.DiscordLogin)
-	authPublic.GET("/discord/callback", authHandler.DiscordCallback)
+	authPublic := e.Group("/auth")                                   // Public auth route GROUP
+	authPublic.GET("/discord/login", authHandler.DiscordLogin)       // Start Discord OAuth login (Example: GET http://localhost:8080/auth/discord/login)
+	authPublic.GET("/discord/callback", authHandler.DiscordCallback) // Discord OAuth callback (Example: GET http://localhost:8080/auth/discord/callback)
 
 	// Auth routes (protected)
-	authProtected := e.Group("/auth", jwtMiddleware)
-	authProtected.GET("/me", authHandler.Me)
-	authProtected.POST("/logout", authHandler.Logout)
+	authProtected := e.Group("/auth", jwtMiddleware)  // Protected auth route GROUP
+	authProtected.GET("/me", authHandler.Me)          // Get current user from JWT (Example: GET http://localhost:8080/auth/me)
+	authProtected.POST("/logout", authHandler.Logout) // Clear session cookie (Example: POST http://localhost:8080/auth/logout)
 
 	// Profile routes (all protected)
-	profileGroup := e.Group("/profile", jwtMiddleware)
+	profileGroup := e.Group("/profile", jwtMiddleware) // Protected profile route GROUP (Base: http://localhost:8080/profile)
 
 	// iRacing Profile - Complete profile operations
-	profileGroup.GET("/iracing", profileHandler.GetIRacingProfile)    // Get complete profile (with licenses & languages)
-	profileGroup.PUT("/iracing", profileHandler.UpdateIRacingProfile) // Update basic profile info
+	profileGroup.GET("/iracing", profileHandler.GetIRacingProfile)    // Get complete profile (with licenses & languages) (Example: GET http://localhost:8080/profile/iracing)
+	profileGroup.PUT("/iracing", profileHandler.UpdateIRacingProfile) // Update basic profile info (Example: PUT http://localhost:8080/profile/iracing)
 
 	// Licenses - Individual license operations
-	profileGroup.GET("/iracing/licenses", profileHandler.GetLicenses)   // Get all licenses
-	profileGroup.PUT("/iracing/licenses", profileHandler.UpsertLicense) // Create/update a specific license
+	profileGroup.GET("/iracing/licenses", profileHandler.GetLicenses)   // Get all licenses (Example: GET http://localhost:8080/profile/iracing/licenses)
+	profileGroup.PUT("/iracing/licenses", profileHandler.UpsertLicense) // Create/update a specific license (Example: PUT http://localhost:8080/profile/iracing/licenses)
 
 	// Languages - Language operations
-	profileGroup.GET("/iracing/languages", profileHandler.GetLanguages)    // Get user's languages
-	profileGroup.PUT("/iracing/languages", profileHandler.UpsertLanguages) // Update user's languages (replaces list)
-	e.GET("/languages", profileHandler.GetAllLanguages)                    // Get all available languages catalog
+	profileGroup.GET("/iracing/languages", profileHandler.GetLanguages)    // Get user's languages (Example: GET http://localhost:8080/profile/iracing/languages)
+	profileGroup.PUT("/iracing/languages", profileHandler.UpsertLanguages) // Update user's languages (replaces list) (Example: PUT http://localhost:8080/profile/iracing/languages)
+
+	// Catalog routes (public)
+	catalogs := e.Group("/catalogs")                           // Public catalog route GROUP (Base: http://localhost:8080/catalogs)
+	catalogs.GET("/series", catalogHandler.GetSeries)          // List all series (Example: GET http://localhost:8080/catalogs/series)
+	catalogs.GET("/car-classes", catalogHandler.GetCarClasses) // List all car classes (Example: GET http://localhost:8080/catalogs/car-classes)
+	catalogs.GET("/cars", catalogHandler.GetCars)              // List all cars (Example: GET http://localhost:8080/catalogs/cars)
+	catalogs.GET("/events", catalogHandler.GetEvents)          // List all events (Example: GET http://localhost:8080/catalogs/events)
+	catalogs.GET("/tracks", catalogHandler.GetTracks)          // List all tracks (Example: GET http://localhost:8080/catalogs/tracks)
+	catalogs.GET("/languages", catalogHandler.GetLanguages)    // List all languages (Example: GET http://localhost:8080/catalogs/languages)
 }

@@ -19,6 +19,7 @@ type Dependencies struct {
 	SQLxDB         *sqlx.DB
 	AuthHandler    *handler.AuthHandler
 	ProfileHandler *handler.ProfileHandler
+	CatalogHandler *handler.CatalogHandler
 }
 
 func Setup(config config.Config) (*Dependencies, error) {
@@ -38,14 +39,21 @@ func Setup(config config.Config) (*Dependencies, error) {
 	userIRacingRepository := repository.NewUserIRacingRepository(sqlxDB)
 	userIRacingLicenseRepository := repository.NewUserIRacingLicenseRepository(sqlxDB)
 	userLanguageRepository := repository.NewUserLanguageRepository(sqlxDB)
+	seriesRepository := repository.NewSeriesRepository(sqlxDB)
+	carClassRepository := repository.NewCarClassRepository(sqlxDB)
+	carRepository := repository.NewCarRepository(sqlxDB)
+	eventRepository := repository.NewEventRepository(sqlxDB)
+	trackRepository := repository.NewTrackRepository(sqlxDB)
 
 	// Services
 	authService := service.NewAuthService(userRepository, userIRacingRepository, oauthCfg, config.JWT)
 	profileService := service.NewProfileService(userIRacingRepository, userIRacingLicenseRepository, userLanguageRepository)
+	catalogService := service.NewCatalogService(seriesRepository, carClassRepository, carRepository, eventRepository, trackRepository, userLanguageRepository)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
 	profileHandler := handler.NewProfileHandler(profileService)
+	catalogHandler := handler.NewCatalogHandler(catalogService)
 
 	return &Dependencies{
 		Config:         config,
@@ -53,6 +61,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 		SQLxDB:         sqlxDB,
 		AuthHandler:    authHandler,
 		ProfileHandler: profileHandler,
+		CatalogHandler: catalogHandler,
 	}, nil
 }
 

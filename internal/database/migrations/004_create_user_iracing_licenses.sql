@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS user_iracing_licenses (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_iracing_id, category),
     FOREIGN KEY (user_iracing_id) REFERENCES user_iracings(id) ON DELETE CASCADE,
-    CHECK (category IN ('road','oval','dirt_road','dirt_oval')),
+    CHECK (category IN ('sports_car','formula','oval','dirt_road','dirt_oval')),
     CHECK (license_level IN ('R','D','C','B','A','P'))
 );
 

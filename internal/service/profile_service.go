@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"iR-Teammate/internal/dto"
 	"iR-Teammate/internal/model"
 	"iR-Teammate/internal/repository"
 )
@@ -21,7 +22,7 @@ func NewProfileService(userIRacingRepository *repository.UserIRacingRepository, 
 	}
 }
 
-func (s *ProfileService) GetUserIRacing(ctx context.Context, userID int64) (*model.UserIRacingProfileDTO, error) {
+func (s *ProfileService) GetUserIRacing(ctx context.Context, userID int64) (*dto.UserIRacingProfileDTO, error) {
 	// Obtener el perfil base
 	profile, err := s.userIRacingRepository.GetByUserID(ctx, userID)
 	if err != nil {
@@ -44,7 +45,7 @@ func (s *ProfileService) GetUserIRacing(ctx context.Context, userID int64) (*mod
 	}
 
 	// Construir el DTO
-	dto := &model.UserIRacingProfileDTO{
+	dto := &dto.UserIRacingProfileDTO{
 		ID:                  profile.ID,
 		UserID:              profile.UserID,
 		IRacingID:           profile.IRacingID,
@@ -118,7 +119,7 @@ func (s *ProfileService) UpsertLicense(ctx context.Context, userID int64, licens
 		return nil, fmt.Errorf("user iracing profile not found")
 	}
 
-	validCategories := map[string]bool{"road": true, "oval": true, "dirt_road": true, "dirt_oval": true}
+	validCategories := map[string]bool{"sports_car": true, "formula": true, "oval": true, "dirt_road": true, "dirt_oval": true}
 	if !validCategories[license.Category] {
 		return nil, fmt.Errorf("invalid category: %s", license.Category)
 	}

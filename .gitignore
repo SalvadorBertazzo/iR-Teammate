@@ -47,3 +47,8 @@ temp/
 # Debug files
 debug
 debug.test 
+
+# External files
+iR-Teammate.postman_collection.json
+
+
