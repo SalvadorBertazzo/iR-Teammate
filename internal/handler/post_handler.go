@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"iR-Teammate/internal/model"
@@ -17,6 +18,22 @@ type PostHandler struct {
 
 func NewPostHandler(service *service.PostService) *PostHandler {
 	return &PostHandler{service: service}
+}
+
+// parseExpand parses ?expand=event,series,car_class,track,cars,languages into a map
+func parseExpand(expandParam string) map[string]bool {
+	if expandParam == "" {
+		return nil
+	}
+	expand := make(map[string]bool)
+	parts := strings.Split(expandParam, ",")
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			expand[trimmed] = true
+		}
+	}
+	return expand
 }
 
 // DTOs for requests
@@ -91,7 +108,8 @@ func (h *PostHandler) Create(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	dtoItem, derr := h.service.GetPostDTO(c.Request().Context(), created.ID)
+	expand := parseExpand(c.QueryParam("expand"))
+	dtoItem, derr := h.service.GetPostDTO(c.Request().Context(), created.ID, expand)
 	if derr != nil {
 		return c.String(http.StatusBadRequest, derr.Error())
 	}
@@ -139,7 +157,8 @@ func (h *PostHandler) Update(c echo.Context) error {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 	// Return DTO after update for unified response shape
-	dtoItem, derr := h.service.GetPostDTO(c.Request().Context(), id)
+	expand := parseExpand(c.QueryParam("expand"))
+	dtoItem, derr := h.service.GetPostDTO(c.Request().Context(), id, expand)
 	if derr != nil {
 		return c.String(http.StatusBadRequest, derr.Error())
 	}
@@ -155,7 +174,8 @@ func (h *PostHandler) Get(c echo.Context) error {
 	if _, err := fmt.Sscan(idParam, &id); err != nil || id <= 0 {
 		return c.NoContent(http.StatusBadRequest)
 	}
-	post, err := h.service.GetPostDTO(c.Request().Context(), id)
+	expand := parseExpand(c.QueryParam("expand"))
+	post, err := h.service.GetPostDTO(c.Request().Context(), id, expand)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
@@ -183,7 +203,8 @@ func (h *PostHandler) Delete(c echo.Context) error {
 }
 
 func (h *PostHandler) ListPublic(c echo.Context) error {
-	items, err := h.service.ListPublicDTO(c.Request().Context())
+	expand := parseExpand(c.QueryParam("expand"))
+	items, err := h.service.ListPublicDTO(c.Request().Context(), expand)
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -194,7 +215,8 @@ func (h *PostHandler) ListPublic(c echo.Context) error {
 func (h *PostHandler) ListMine(c echo.Context) error {
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
-	items, err := h.service.ListByUserDTO(c.Request().Context(), userID)
+	expand := parseExpand(c.QueryParam("expand"))
+	items, err := h.service.ListByUserDTO(c.Request().Context(), userID, expand)
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}

@@ -183,8 +183,8 @@ func (s *PostService) DeletePost(ctx context.Context, userID, postID int64) erro
 
 // -------------------- DTO variants (public API) --------------------
 
-// GetPostDTO returns a PostDTO with expanded relations
-func (s *PostService) GetPostDTO(ctx context.Context, postID int64) (*dto.PostDTO, error) {
+// GetPostDTO returns a PostDTO with expanded relations (if expand is requested)
+func (s *PostService) GetPostDTO(ctx context.Context, postID int64, expand map[string]bool) (*dto.PostDTO, error) {
 	if postID <= 0 {
 		return nil, fmt.Errorf("invalid post id")
 	}
@@ -195,18 +195,18 @@ func (s *PostService) GetPostDTO(ctx context.Context, postID int64) (*dto.PostDT
 	if p == nil {
 		return nil, nil
 	}
-	return s.buildPostDTO(ctx, p)
+	return s.buildPostDTO(ctx, p, expand)
 }
 
-// ListPublicDTO returns public posts as DTOs
-func (s *PostService) ListPublicDTO(ctx context.Context) ([]*dto.PostDTO, error) {
+// ListPublicDTO returns public posts as DTOs (with optional expand)
+func (s *PostService) ListPublicDTO(ctx context.Context, expand map[string]bool) ([]*dto.PostDTO, error) {
 	posts, err := s.postRepo.GetPublic(ctx)
 	if err != nil {
 		return nil, err
 	}
 	out := make([]*dto.PostDTO, 0, len(posts))
 	for _, p := range posts {
-		d, derr := s.buildPostDTO(ctx, p)
+		d, derr := s.buildPostDTO(ctx, p, expand)
 		if derr != nil {
 			return nil, derr
 		}
@@ -215,8 +215,8 @@ func (s *PostService) ListPublicDTO(ctx context.Context) ([]*dto.PostDTO, error)
 	return out, nil
 }
 
-// ListByUserDTO returns user's posts as DTOs
-func (s *PostService) ListByUserDTO(ctx context.Context, userID int64) ([]*dto.PostDTO, error) {
+// ListByUserDTO returns user's posts as DTOs (with optional expand)
+func (s *PostService) ListByUserDTO(ctx context.Context, userID int64, expand map[string]bool) ([]*dto.PostDTO, error) {
 	if userID <= 0 {
 		return nil, fmt.Errorf("invalid user id")
 	}
@@ -226,7 +226,7 @@ func (s *PostService) ListByUserDTO(ctx context.Context, userID int64) ([]*dto.P
 	}
 	out := make([]*dto.PostDTO, 0, len(posts))
 	for _, p := range posts {
-		d, derr := s.buildPostDTO(ctx, p)
+		d, derr := s.buildPostDTO(ctx, p, expand)
 		if derr != nil {
 			return nil, derr
 		}
@@ -237,7 +237,7 @@ func (s *PostService) ListByUserDTO(ctx context.Context, userID int64) ([]*dto.P
 
 // -------------------- Helpers --------------------
 
-func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post) (*dto.PostDTO, error) {
+func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand map[string]bool) (*dto.PostDTO, error) {
 	if p == nil {
 		return nil, fmt.Errorf("post is nil")
 	}
@@ -263,46 +263,79 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post) (*dto.Pos
 		UpdatedAt:       p.UpdatedAt,
 	}
 
-	// Expand singular FKs if present
-	if p.EventID != nil && s.eventRepo != nil {
-		item, err := s.eventRepo.GetByID(ctx, *p.EventID)
+	// Always fetch car_ids and language_codes (N:M relations)
+	if s.postCarRepo != nil {
+		carRels, err := s.postCarRepo.GetByPostID(ctx, p.ID)
 		if err != nil {
 			return nil, err
 		}
-		d.Event = item
+		if len(carRels) > 0 {
+			carIDs := make([]int64, 0, len(carRels))
+			for _, r := range carRels {
+				carIDs = append(carIDs, r.CarID)
+			}
+			d.CarIDs = carIDs
+		}
 	}
-	if p.SeriesID != nil && s.seriesRepo != nil {
-		item, err := s.seriesRepo.GetByID(ctx, *p.SeriesID)
+	if s.postLangRepo != nil {
+		langRels, err := s.postLangRepo.GetByPostID(ctx, p.ID)
 		if err != nil {
 			return nil, err
 		}
-		d.Series = item
-	}
-	if p.CarClassID != nil && s.carClassRepo != nil {
-		item, err := s.carClassRepo.GetByID(ctx, *p.CarClassID)
-		if err != nil {
-			return nil, err
+		if len(langRels) > 0 {
+			langCodes := make([]string, 0, len(langRels))
+			for _, r := range langRels {
+				langCodes = append(langCodes, r.LanguageCode)
+			}
+			d.LanguageCodes = langCodes
 		}
-		d.CarClass = item
-	}
-	if p.TrackID != nil && s.trackRepo != nil {
-		item, err := s.trackRepo.GetByID(ctx, *p.TrackID)
-		if err != nil {
-			return nil, err
-		}
-		d.Track = item
 	}
 
-	// Expand cars (N:M)
-	if s.postCarRepo != nil && s.carRepo != nil {
-		rels, err := s.postCarRepo.GetByPostID(ctx, p.ID)
-		if err != nil {
-			return nil, err
+	// Only build included block if expand is requested
+	if len(expand) > 0 {
+		included := &dto.IncludedDTO{}
+
+		// Expand event
+		if expand["event"] && p.EventID != nil && s.eventRepo != nil {
+			item, err := s.eventRepo.GetByID(ctx, *p.EventID)
+			if err != nil {
+				return nil, err
+			}
+			included.Event = item
 		}
-		if len(rels) > 0 {
-			cars := make([]*model.Car, 0, len(rels))
-			for _, r := range rels {
-				c, cerr := s.carRepo.GetByID(ctx, r.CarID)
+
+		// Expand series
+		if expand["series"] && p.SeriesID != nil && s.seriesRepo != nil {
+			item, err := s.seriesRepo.GetByID(ctx, *p.SeriesID)
+			if err != nil {
+				return nil, err
+			}
+			included.Series = item
+		}
+
+		// Expand car_class
+		if expand["car_class"] && p.CarClassID != nil && s.carClassRepo != nil {
+			item, err := s.carClassRepo.GetByID(ctx, *p.CarClassID)
+			if err != nil {
+				return nil, err
+			}
+			included.CarClass = item
+		}
+
+		// Expand track
+		if expand["track"] && p.TrackID != nil && s.trackRepo != nil {
+			item, err := s.trackRepo.GetByID(ctx, *p.TrackID)
+			if err != nil {
+				return nil, err
+			}
+			included.Track = item
+		}
+
+		// Expand cars (N:M) - use already fetched car_ids
+		if expand["cars"] && s.carRepo != nil && len(d.CarIDs) > 0 {
+			cars := make([]*model.Car, 0, len(d.CarIDs))
+			for _, carID := range d.CarIDs {
+				c, cerr := s.carRepo.GetByID(ctx, carID)
 				if cerr != nil {
 					return nil, cerr
 				}
@@ -310,17 +343,11 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post) (*dto.Pos
 					cars = append(cars, c)
 				}
 			}
-			d.Cars = cars
+			included.Cars = cars
 		}
-	}
 
-	// Expand languages (N:M) via codes -> names using languages catalog
-	if s.postLangRepo != nil && s.userLangRepo != nil {
-		rels, err := s.postLangRepo.GetByPostID(ctx, p.ID)
-		if err != nil {
-			return nil, err
-		}
-		if len(rels) > 0 {
+		// Expand languages (N:M) - use already fetched language_codes
+		if expand["languages"] && s.userLangRepo != nil && len(d.LanguageCodes) > 0 {
 			// Build a map[code]Language from full catalog for quick lookup
 			catalog, cerr := s.userLangRepo.GetAllLanguages(ctx)
 			if cerr != nil {
@@ -330,13 +357,19 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post) (*dto.Pos
 			for _, l := range catalog {
 				codeToLang[l.Code] = l
 			}
-			langs := make([]*model.Language, 0, len(rels))
-			for _, r := range rels {
-				if l, ok := codeToLang[r.LanguageCode]; ok {
+			langs := make([]*model.Language, 0, len(d.LanguageCodes))
+			for _, code := range d.LanguageCodes {
+				if l, ok := codeToLang[code]; ok {
 					langs = append(langs, l)
 				}
 			}
-			d.Languages = langs
+			included.Languages = langs
+		}
+
+		// Only set included if at least one relation was expanded
+		if included.Event != nil || included.Series != nil || included.CarClass != nil ||
+			included.Track != nil || len(included.Cars) > 0 || len(included.Languages) > 0 {
+			d.Included = included
 		}
 	}
 

@@ -13,6 +13,7 @@ type PostDTO struct {
 	EventID         *int64     `json:"event_id,omitempty"`
 	SeriesID        *int64     `json:"series_id,omitempty"`
 	CarClassID      *int64     `json:"car_class_id,omitempty"`
+	CarIDs          []int64    `json:"car_ids,omitempty"`
 	TrackID         *int64     `json:"track_id,omitempty"`
 	Category        string     `json:"category"`
 	MinLicenseLevel string     `json:"min_license_level"`
@@ -25,8 +26,13 @@ type PostDTO struct {
 	ContactHint     string     `json:"contact_hint"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
+	LanguageCodes   []string   `json:"language_codes,omitempty"`
 
-	// Expanded relations (optional)
+	// Expanded relations go in included block (only if ?expand=... is used)
+	Included *IncludedDTO `json:"included,omitempty"`
+}
+
+type IncludedDTO struct {
 	Event     *model.Event      `json:"event,omitempty"`
 	Series    *model.Series     `json:"series,omitempty"`
 	CarClass  *model.CarClass   `json:"car_class,omitempty"`
