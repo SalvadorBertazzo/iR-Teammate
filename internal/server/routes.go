@@ -18,6 +18,7 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	profileHandler := dependencies.ProfileHandler
 	catalogHandler := dependencies.CatalogHandler
 	postHandler := dependencies.PostHandler
+	commentHandler := dependencies.CommentHandler
 
 	// Auth routes (public)
 	authPublic := e.Group("/auth")                                   // Public auth route GROUP (Base: http://localhost:8080/auth)
@@ -54,13 +55,17 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	catalogs.GET("/languages", catalogHandler.GetLanguages)    // List all languages (Example: GET http://localhost:8080/catalogs/languages)
 
 	// Posts routes
-	postsPublic := e.Group("/posts")            // Public posts route GROUP (Base: http://localhost:8080/posts)
-	postsPublic.GET("", postHandler.ListPublic) // List public open posts (Example: GET http://localhost:8080/posts)
-	postsPublic.GET("/:id", postHandler.Get)    // Get post by id (Example: GET http://localhost:8080/posts/1)
+	postsPublic := e.Group("/posts")                            // Public posts route GROUP (Base: http://localhost:8080/posts)
+	postsPublic.GET("", postHandler.ListPublic)                 // List public open posts (Example: GET http://localhost:8080/posts)
+	postsPublic.GET("/:id", postHandler.Get)                    // Get post by id (Example: GET http://localhost:8080/posts/1)
+	postsPublic.GET("/:id/comments", commentHandler.ListByPost) // List comments for post (Example: GET http://localhost:8080/posts/1/comments?expand=user,replies)
 
-	postsProtected := e.Group("/posts", jwtMiddleware) // Protected posts route GROUP
-	postsProtected.POST("", postHandler.Create)        // Create post (Example: POST http://localhost:8080/posts)
-	postsProtected.GET("/mine", postHandler.ListMine)  // List current user's posts (Example: GET http://localhost:8080/posts/mine)
-	postsProtected.PUT("/:id", postHandler.Update)     // Update post by id (Example: PUT http://localhost:8080/posts/1)
-	postsProtected.DELETE("/:id", postHandler.Delete)  // Delete post by id (Example: DELETE http://localhost:8080/posts/1)
+	postsProtected := e.Group("/posts", jwtMiddleware)                                   // Protected posts route GROUP
+	postsProtected.POST("", postHandler.Create)                                          // Create post (Example: POST http://localhost:8080/posts)
+	postsProtected.GET("/mine", postHandler.ListMine)                                    // List current user's posts (Example: GET http://localhost:8080/posts/mine)
+	postsProtected.PUT("/:id", postHandler.Update)                                       // Update post by id (Example: PUT http://localhost:8080/posts/1)
+	postsProtected.DELETE("/:id", postHandler.Delete)                                    // Delete post by id (Example: DELETE http://localhost:8080/posts/1)
+	postsProtected.POST("/:id/comments", commentHandler.CreateRoot)                      // Create root comment (Example: POST http://localhost:8080/posts/1/comments)
+	postsProtected.POST("/:id/comments/:comment_id/replies", commentHandler.CreateReply) // Create a reply (Example: POST http://localhost:8080/posts/1/comments/10/replies)
+	postsProtected.DELETE("/:id/comments/:comment_id", commentHandler.Delete)            // Soft delete a comment (Example: DELETE http://localhost:8080/posts/1/comments/10)
 }

@@ -29,10 +29,10 @@ type PostDTO struct {
 	LanguageCodes   []string   `json:"language_codes,omitempty"`
 
 	// Expanded relations go in included block (only if ?expand=... is used)
-	Included *IncludedDTO `json:"included,omitempty"`
+	Included *PostIncludedDTO `json:"included,omitempty"`
 }
 
-type IncludedDTO struct {
+type PostIncludedDTO struct {
 	Event     *model.Event      `json:"event,omitempty"`
 	Series    *model.Series     `json:"series,omitempty"`
 	CarClass  *model.CarClass   `json:"car_class,omitempty"`

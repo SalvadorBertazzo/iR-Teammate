@@ -21,6 +21,7 @@ type Dependencies struct {
 	ProfileHandler *handler.ProfileHandler
 	CatalogHandler *handler.CatalogHandler
 	PostHandler    *handler.PostHandler
+	CommentHandler *handler.CommentHandler
 }
 
 func Setup(config config.Config) (*Dependencies, error) {
@@ -48,6 +49,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 	postRepository := repository.NewPostRepository(sqlxDB)
 	postCarRepository := repository.NewPostCarRepository(sqlxDB)
 	postLanguageRepository := repository.NewPostLanguageRepository(sqlxDB)
+	commentRepository := repository.NewCommentRepository(sqlxDB)
 
 	// Services
 	authService := service.NewAuthService(userRepository, userIRacingRepository, oauthCfg, config.JWT)
@@ -64,12 +66,14 @@ func Setup(config config.Config) (*Dependencies, error) {
 		trackRepository,
 		userLanguageRepository,
 	)
+	commentService := service.NewCommentService(commentRepository, userRepository)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
 	profileHandler := handler.NewProfileHandler(profileService)
 	catalogHandler := handler.NewCatalogHandler(catalogService)
 	postHandler := handler.NewPostHandler(postService)
+	commentHandler := handler.NewCommentHandler(commentService)
 
 	return &Dependencies{
 		Config:         config,
@@ -79,6 +83,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 		ProfileHandler: profileHandler,
 		CatalogHandler: catalogHandler,
 		PostHandler:    postHandler,
+		CommentHandler: commentHandler,
 	}, nil
 }
 

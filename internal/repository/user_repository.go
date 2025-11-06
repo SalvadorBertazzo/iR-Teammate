@@ -16,6 +16,23 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
+func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, error) {
+	var u model.User
+	err := r.db.GetContext(ctx, &u, `
+        SELECT id, discord_id, username, global_name, email, avatar, created_at
+        FROM users
+        WHERE id = ?`,
+		id,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
 func (r *UserRepository) GetByDiscordID(ctx context.Context, discordID string) (*model.User, error) {
 	var u model.User
 	err := r.db.GetContext(ctx, &u, `

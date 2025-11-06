@@ -293,7 +293,7 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 
 	// Only build included block if expand is requested
 	if len(expand) > 0 {
-		included := &dto.IncludedDTO{}
+		included := &dto.PostIncludedDTO{}
 
 		// Expand event
 		if expand["event"] && p.EventID != nil && s.eventRepo != nil {
