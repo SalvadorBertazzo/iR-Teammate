@@ -15,8 +15,3 @@ type CommentIncludedDTO struct {
 	User    *UserMinDTO   `json:"user,omitempty"`
 	Replies []*CommentDTO `json:"replies,omitempty"`
 }
-
-type UserMinDTO struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-}

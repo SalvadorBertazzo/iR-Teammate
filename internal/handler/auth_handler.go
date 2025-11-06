@@ -78,12 +78,24 @@ func (h *AuthHandler) DiscordCallback(c echo.Context) error {
 
 // GET /me - show the logged in user info (requires JWT middleware)
 func (h *AuthHandler) Me(c echo.Context) error {
-	userID := c.Get("user_id")
-	discordID := c.Get("discord_id")
+	userIDAny := c.Get("user_id")
+	userID, _ := userIDAny.(int64)
+	discordIDAny := c.Get("discord_id")
+	discordID, _ := discordIDAny.(string)
+
+	// Get basic user info (username only, no iRacing profile)
+	user, err := h.service.GetUserByID(c.Request().Context(), userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if user == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
+	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"user_id":    userID,
 		"discord_id": discordID,
+		"username":   user.Username,
 	})
 }
 

@@ -18,3 +18,8 @@ type UserIRacingProfileDTO struct {
 	Licenses            []*model.UserIRacingLicense `json:"licenses"`
 	Languages           []*model.Language           `json:"languages"`
 }
+
+type UserMinDTO struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+}

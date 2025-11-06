@@ -19,6 +19,7 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	catalogHandler := dependencies.CatalogHandler
 	postHandler := dependencies.PostHandler
 	commentHandler := dependencies.CommentHandler
+	postApplicationHandler := dependencies.PostApplicationHandler
 
 	// Auth routes (public)
 	authPublic := e.Group("/auth")                                   // Public auth route GROUP (Base: http://localhost:8080/auth)
@@ -73,4 +74,15 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	postsProtected.POST("/:id/comments", commentHandler.CreateRoot)                      // Create root comment (Example: POST http://localhost:8080/posts/1/comments)
 	postsProtected.POST("/:id/comments/:comment_id/replies", commentHandler.CreateReply) // Create a reply (Example: POST http://localhost:8080/posts/1/comments/10/replies)
 	postsProtected.DELETE("/:id/comments/:comment_id", commentHandler.Delete)            // Soft delete a comment (Example: DELETE http://localhost:8080/posts/1/comments/10)
+
+	// Post Applications routes
+	postsProtected.POST("/:id/applications", postApplicationHandler.Create)                               // Create application to post (Example: POST http://localhost:8080/posts/1/applications)
+	postsProtected.GET("/:id/applications", postApplicationHandler.ListByPost)                            // List applications for post (Example: GET http://localhost:8080/posts/1/applications?status=pending)
+	postsProtected.GET("/:id/applications/:application_id", postApplicationHandler.GetByID)               // Get application by id (Example: GET http://localhost:8080/posts/1/applications/10)
+	postsProtected.PATCH("/:id/applications/:application_id/status", postApplicationHandler.UpdateStatus) // Update application status (Example: PATCH http://localhost:8080/posts/1/applications/10/status)
+	postsPublic.GET("/:id/applications/count", postApplicationHandler.CountByPostAndStatus)               // Count applications by status (Example: GET http://localhost:8080/posts/1/applications/count?status=pending)
+
+	// Applications routes (protected)
+	applicationsProtected := e.Group("/applications", jwtMiddleware)           // Protected applications route GROUP
+	applicationsProtected.GET("/mine", postApplicationHandler.ListByApplicant) // List current user's applications (Example: GET http://localhost:8080/applications/mine)
 }

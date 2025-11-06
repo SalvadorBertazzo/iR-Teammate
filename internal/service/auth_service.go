@@ -158,6 +158,15 @@ func (s *AuthService) fetchDiscordUser(ctx context.Context, accessToken string) 
 	return &du, nil
 }
 
+// GetUserByID returns basic user information (for auth endpoints only)
+func (s *AuthService) GetUserByID(ctx context.Context, userID int64) (*model.User, error) {
+	user, err := s.userRepository.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+	return user, nil
+}
+
 func generateState() (string, error) {
 	buf := make([]byte, 32)
 	if _, err := rand.Read(buf); err != nil {

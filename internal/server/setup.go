@@ -14,14 +14,15 @@ import (
 )
 
 type Dependencies struct {
-	Config         config.Config
-	DB             *sql.DB
-	SQLxDB         *sqlx.DB
-	AuthHandler    *handler.AuthHandler
-	ProfileHandler *handler.ProfileHandler
-	CatalogHandler *handler.CatalogHandler
-	PostHandler    *handler.PostHandler
-	CommentHandler *handler.CommentHandler
+	Config                 config.Config
+	DB                     *sql.DB
+	SQLxDB                 *sqlx.DB
+	AuthHandler            *handler.AuthHandler
+	ProfileHandler         *handler.ProfileHandler
+	CatalogHandler         *handler.CatalogHandler
+	PostHandler            *handler.PostHandler
+	CommentHandler         *handler.CommentHandler
+	PostApplicationHandler *handler.PostApplicationHandler
 }
 
 func Setup(config config.Config) (*Dependencies, error) {
@@ -50,6 +51,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 	postCarRepository := repository.NewPostCarRepository(sqlxDB)
 	postLanguageRepository := repository.NewPostLanguageRepository(sqlxDB)
 	commentRepository := repository.NewCommentRepository(sqlxDB)
+	postApplicationRepository := repository.NewPostApplicationRepository(sqlxDB)
 
 	// Services
 	authService := service.NewAuthService(userRepository, userIRacingRepository, oauthCfg, config.JWT)
@@ -67,6 +69,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 		userLanguageRepository,
 	)
 	commentService := service.NewCommentService(commentRepository, userRepository)
+	postApplicationService := service.NewPostApplicationService(postApplicationRepository, postRepository, userRepository)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
@@ -74,16 +77,18 @@ func Setup(config config.Config) (*Dependencies, error) {
 	catalogHandler := handler.NewCatalogHandler(catalogService)
 	postHandler := handler.NewPostHandler(postService)
 	commentHandler := handler.NewCommentHandler(commentService)
+	postApplicationHandler := handler.NewPostApplicationHandler(postApplicationService)
 
 	return &Dependencies{
-		Config:         config,
-		DB:             db,
-		SQLxDB:         sqlxDB,
-		AuthHandler:    authHandler,
-		ProfileHandler: profileHandler,
-		CatalogHandler: catalogHandler,
-		PostHandler:    postHandler,
-		CommentHandler: commentHandler,
+		Config:                 config,
+		DB:                     db,
+		SQLxDB:                 sqlxDB,
+		AuthHandler:            authHandler,
+		ProfileHandler:         profileHandler,
+		CatalogHandler:         catalogHandler,
+		PostHandler:            postHandler,
+		CommentHandler:         commentHandler,
+		PostApplicationHandler: postApplicationHandler,
 	}, nil
 }
 
