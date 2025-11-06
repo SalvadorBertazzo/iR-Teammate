@@ -127,31 +127,6 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int64, post *model.
 	return updated, nil
 }
 
-// getPost returns a post by id (no joins/DTO)
-func (s *PostService) getPost(ctx context.Context, postID int64) (*model.Post, error) {
-	if postID <= 0 {
-		return nil, fmt.Errorf("invalid post id")
-	}
-	p, err := s.postRepo.GetByID(ctx, postID)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
-}
-
-// listPublic returns public, open posts (no filters yet)
-func (s *PostService) listPublic(ctx context.Context) ([]*model.Post, error) {
-	return s.postRepo.GetPublic(ctx)
-}
-
-// listByUser returns all posts for a given owner
-func (s *PostService) listByUser(ctx context.Context, userID int64) ([]*model.Post, error) {
-	if userID <= 0 {
-		return nil, fmt.Errorf("invalid user id")
-	}
-	return s.postRepo.GetByUserID(ctx, userID)
-}
-
 // validateCategory ensures the category matches allowed values (mirrors DB CHECK)
 func (s *PostService) validateCategory(category string) error {
 	switch category {
@@ -160,6 +135,90 @@ func (s *PostService) validateCategory(category string) error {
 	default:
 		return fmt.Errorf("invalid category: %s", category)
 	}
+}
+
+// validateFilters validates and normalizes filter criteria
+func (s *PostService) validateFilters(filters *dto.PostFilters) error {
+	// Validate UserID
+	if filters.UserID != nil && *filters.UserID <= 0 {
+		return fmt.Errorf("invalid user_id: must be greater than 0")
+	}
+
+	// Validate categories
+	validCategories := map[string]bool{
+		"sports_car": true,
+		"formula":    true,
+		"oval":       true,
+		"dirt_road":  true,
+		"dirt_oval":  true,
+	}
+	for _, cat := range filters.Category {
+		if !validCategories[cat] {
+			return fmt.Errorf("invalid category: %s", cat)
+		}
+	}
+
+	// Validate status
+	validStatuses := map[string]bool{
+		"open":      true,
+		"filled":    true,
+		"closed":    true,
+		"cancelled": true,
+	}
+	for _, status := range filters.Status {
+		if !validStatuses[status] {
+			return fmt.Errorf("invalid status: %s", status)
+		}
+	}
+
+	// Validate sort_by
+	if filters.SortBy != "" {
+		validSortFields := map[string]bool{
+			"created_at":     true,
+			"event_start_at": true,
+			"min_irating":    true,
+		}
+		if !validSortFields[filters.SortBy] {
+			return fmt.Errorf("invalid sort_by: %s", filters.SortBy)
+		}
+	}
+
+	// Validate sort_order
+	if filters.SortOrder != "" && filters.SortOrder != "asc" && filters.SortOrder != "desc" {
+		return fmt.Errorf("invalid sort_order: %s (must be 'asc' or 'desc')", filters.SortOrder)
+	}
+
+	// Validate license level
+	if filters.MinLicenseLevel != "" {
+		validLicenseLevels := map[string]bool{
+			"R": true, "D": true, "C": true, "B": true, "A": true, "P": true,
+		}
+		if !validLicenseLevels[filters.MinLicenseLevel] {
+			return fmt.Errorf("invalid min_license_level: %s", filters.MinLicenseLevel)
+		}
+	}
+
+	// Validate iRating range
+	if filters.MinIRating != nil && filters.MaxIRating != nil {
+		if *filters.MinIRating > *filters.MaxIRating {
+			return fmt.Errorf("min_irating (%d) cannot be greater than max_irating (%d)", *filters.MinIRating, *filters.MaxIRating)
+		}
+	}
+	if filters.MinIRating != nil && *filters.MinIRating < 0 {
+		return fmt.Errorf("min_irating cannot be negative")
+	}
+	if filters.MaxIRating != nil && *filters.MaxIRating < 0 {
+		return fmt.Errorf("max_irating cannot be negative")
+	}
+
+	// Validate date range
+	if filters.EventStartFrom != nil && filters.EventStartTo != nil {
+		if filters.EventStartFrom.After(*filters.EventStartTo) {
+			return fmt.Errorf("event_start_from cannot be after event_start_to")
+		}
+	}
+
+	return nil
 }
 
 // DeletePost removes a post if the requester is the owner
@@ -198,41 +257,46 @@ func (s *PostService) GetPostDTO(ctx context.Context, postID int64, expand map[s
 	return s.buildPostDTO(ctx, p, expand)
 }
 
-// ListPublicDTO returns public posts as DTOs (with optional expand)
-func (s *PostService) ListPublicDTO(ctx context.Context, expand map[string]bool) ([]*dto.PostDTO, error) {
-	posts, err := s.postRepo.GetPublic(ctx)
-	if err != nil {
+// SearchPostsDTO searches posts with filters and returns DTOs with pagination metadata
+func (s *PostService) SearchPostsDTO(ctx context.Context, filters dto.PostFilters, expand map[string]bool) (*dto.PostSearchResponse, error) {
+	// Validate and normalize filters
+	if err := s.validateFilters(&filters); err != nil {
 		return nil, err
 	}
-	out := make([]*dto.PostDTO, 0, len(posts))
-	for _, p := range posts {
-		d, derr := s.buildPostDTO(ctx, p, expand)
-		if derr != nil {
-			return nil, derr
-		}
-		out = append(out, d)
-	}
-	return out, nil
-}
 
-// ListByUserDTO returns user's posts as DTOs (with optional expand)
-func (s *PostService) ListByUserDTO(ctx context.Context, userID int64, expand map[string]bool) ([]*dto.PostDTO, error) {
-	if userID <= 0 {
-		return nil, fmt.Errorf("invalid user id")
+	// Apply default pagination if not set
+	if filters.Limit <= 0 {
+		filters.Limit = 20
 	}
-	posts, err := s.postRepo.GetByUserID(ctx, userID)
+	if filters.Limit > 100 {
+		filters.Limit = 100
+	}
+	if filters.Offset < 0 {
+		filters.Offset = 0
+	}
+
+	// Search posts in repository
+	posts, total, err := s.postRepo.SearchPosts(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]*dto.PostDTO, 0, len(posts))
+
+	// Convert to DTOs
+	dtos := make([]*dto.PostDTO, 0, len(posts))
 	for _, p := range posts {
 		d, derr := s.buildPostDTO(ctx, p, expand)
 		if derr != nil {
 			return nil, derr
 		}
-		out = append(out, d)
+		dtos = append(dtos, d)
 	}
-	return out, nil
+
+	return &dto.PostSearchResponse{
+		Posts:  dtos,
+		Total:  total,
+		Limit:  filters.Limit,
+		Offset: filters.Offset,
+	}, nil
 }
 
 // -------------------- Helpers --------------------

@@ -40,3 +40,41 @@ type PostIncludedDTO struct {
 	Cars      []*model.Car      `json:"cars,omitempty"`
 	Languages []*model.Language `json:"languages,omitempty"`
 }
+
+type PostFilters struct {
+	Search string `json:"search,omitempty"`
+
+	UserID *int64 `json:"user_id,omitempty"`
+
+	Category []string `json:"category,omitempty"`
+
+	MinIRating *int `json:"min_irating,omitempty"`
+	MaxIRating *int `json:"max_irating,omitempty"`
+
+	MinLicenseLevel string `json:"min_license_level,omitempty"`
+
+	SeriesIDs []int64 `json:"series_ids,omitempty"`
+	CarIDs    []int64 `json:"car_ids,omitempty"`
+	TrackIDs  []int64 `json:"track_ids,omitempty"`
+
+	Timezone string `json:"timezone,omitempty"`
+
+	Status []string `json:"status,omitempty"`
+
+	EventStartFrom *time.Time `json:"event_start_from,omitempty"`
+	EventStartTo   *time.Time `json:"event_start_to,omitempty"`
+
+	SortBy    string `json:"sort_by,omitempty"`    // created_at, event_start_at, min_irating
+	SortOrder string `json:"sort_order,omitempty"` // asc, desc
+
+	Limit  int `json:"limit,omitempty"`
+	Offset int `json:"offset,omitempty"`
+}
+
+// PostSearchResponse represents the response for post search with pagination metadata
+type PostSearchResponse struct {
+	Posts  []*PostDTO `json:"posts"`
+	Total  int64      `json:"total"`
+	Limit  int        `json:"limit"`
+	Offset int        `json:"offset"`
+}

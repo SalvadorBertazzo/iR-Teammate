@@ -3,9 +3,11 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"iR-Teammate/internal/dto"
 	"iR-Teammate/internal/model"
 	"iR-Teammate/internal/service"
 
@@ -34,6 +36,153 @@ func parseExpand(expandParam string) map[string]bool {
 		}
 	}
 	return expand
+}
+
+// parsePostFilters parses query parameters into PostFilters
+func parsePostFilters(c echo.Context) dto.PostFilters {
+	filters := dto.PostFilters{}
+
+	// Text search
+	if search := c.QueryParam("search"); search != "" {
+		filters.Search = strings.TrimSpace(search)
+	}
+
+	// Category (comma-separated)
+	if categoryParam := c.QueryParam("category"); categoryParam != "" {
+		parts := strings.Split(categoryParam, ",")
+		categories := make([]string, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				categories = append(categories, trimmed)
+			}
+		}
+		if len(categories) > 0 {
+			filters.Category = categories
+		}
+	}
+
+	// iRating range
+	if minIRatingStr := c.QueryParam("min_irating"); minIRatingStr != "" {
+		if val, err := strconv.Atoi(minIRatingStr); err == nil {
+			filters.MinIRating = &val
+		}
+	}
+	if maxIRatingStr := c.QueryParam("max_irating"); maxIRatingStr != "" {
+		if val, err := strconv.Atoi(maxIRatingStr); err == nil {
+			filters.MaxIRating = &val
+		}
+	}
+
+	// License level
+	if minLicenseLevel := c.QueryParam("min_license_level"); minLicenseLevel != "" {
+		filters.MinLicenseLevel = strings.TrimSpace(minLicenseLevel)
+	}
+
+	// Series IDs (comma-separated)
+	if seriesIDsParam := c.QueryParam("series_ids"); seriesIDsParam != "" {
+		parts := strings.Split(seriesIDsParam, ",")
+		seriesIDs := make([]int64, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				if val, err := strconv.ParseInt(trimmed, 10, 64); err == nil {
+					seriesIDs = append(seriesIDs, val)
+				}
+			}
+		}
+		if len(seriesIDs) > 0 {
+			filters.SeriesIDs = seriesIDs
+		}
+	}
+
+	// Car IDs (comma-separated)
+	if carIDsParam := c.QueryParam("car_ids"); carIDsParam != "" {
+		parts := strings.Split(carIDsParam, ",")
+		carIDs := make([]int64, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				if val, err := strconv.ParseInt(trimmed, 10, 64); err == nil {
+					carIDs = append(carIDs, val)
+				}
+			}
+		}
+		if len(carIDs) > 0 {
+			filters.CarIDs = carIDs
+		}
+	}
+
+	// Track IDs (comma-separated)
+	if trackIDsParam := c.QueryParam("track_ids"); trackIDsParam != "" {
+		parts := strings.Split(trackIDsParam, ",")
+		trackIDs := make([]int64, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				if val, err := strconv.ParseInt(trimmed, 10, 64); err == nil {
+					trackIDs = append(trackIDs, val)
+				}
+			}
+		}
+		if len(trackIDs) > 0 {
+			filters.TrackIDs = trackIDs
+		}
+	}
+
+	// Timezone
+	if timezone := c.QueryParam("timezone"); timezone != "" {
+		filters.Timezone = strings.TrimSpace(timezone)
+	}
+
+	// Status (comma-separated)
+	if statusParam := c.QueryParam("status"); statusParam != "" {
+		parts := strings.Split(statusParam, ",")
+		statuses := make([]string, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				statuses = append(statuses, trimmed)
+			}
+		}
+		if len(statuses) > 0 {
+			filters.Status = statuses
+		}
+	}
+
+	// Event date range
+	if eventStartFromStr := c.QueryParam("event_start_from"); eventStartFromStr != "" {
+		if t, err := time.Parse(time.RFC3339, eventStartFromStr); err == nil {
+			filters.EventStartFrom = &t
+		}
+	}
+	if eventStartToStr := c.QueryParam("event_start_to"); eventStartToStr != "" {
+		if t, err := time.Parse(time.RFC3339, eventStartToStr); err == nil {
+			filters.EventStartTo = &t
+		}
+	}
+
+	// Sorting
+	if sortBy := c.QueryParam("sort_by"); sortBy != "" {
+		filters.SortBy = strings.TrimSpace(sortBy)
+	}
+	if sortOrder := c.QueryParam("sort_order"); sortOrder != "" {
+		filters.SortOrder = strings.TrimSpace(sortOrder)
+	}
+
+	// Pagination
+	if limitStr := c.QueryParam("limit"); limitStr != "" {
+		if val, err := strconv.Atoi(limitStr); err == nil && val > 0 {
+			filters.Limit = val
+		}
+	}
+	if offsetStr := c.QueryParam("offset"); offsetStr != "" {
+		if val, err := strconv.Atoi(offsetStr); err == nil && val >= 0 {
+			filters.Offset = val
+		}
+	}
+
+	return filters
 }
 
 // DTOs for requests
@@ -203,22 +352,31 @@ func (h *PostHandler) Delete(c echo.Context) error {
 }
 
 func (h *PostHandler) ListPublic(c echo.Context) error {
+	// Parse filters from query parameters
+	filters := parsePostFilters(c)
 	expand := parseExpand(c.QueryParam("expand"))
-	items, err := h.service.ListPublicDTO(c.Request().Context(), expand)
+
+	// Use SearchPostsDTO with parsed filters
+	response, err := h.service.SearchPostsDTO(c.Request().Context(), filters, expand)
 	if err != nil {
-		return c.NoContent(http.StatusInternalServerError)
+		return c.String(http.StatusBadRequest, err.Error())
 	}
-	return c.JSON(http.StatusOK, items)
+	return c.JSON(http.StatusOK, response)
 }
 
 // ListMine lists posts owned by the current user (JWT required)
 func (h *PostHandler) ListMine(c echo.Context) error {
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
+
+	filters := parsePostFilters(c)
+	filters.UserID = &userID
+
 	expand := parseExpand(c.QueryParam("expand"))
-	items, err := h.service.ListByUserDTO(c.Request().Context(), userID, expand)
+
+	response, err := h.service.SearchPostsDTO(c.Request().Context(), filters, expand)
 	if err != nil {
-		return c.NoContent(http.StatusInternalServerError)
+		return c.String(http.StatusBadRequest, err.Error())
 	}
-	return c.JSON(http.StatusOK, items)
+	return c.JSON(http.StatusOK, response)
 }
