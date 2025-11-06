@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"iR-Teammate/internal/model"
@@ -17,6 +18,29 @@ func NewProfileHandler(service *service.ProfileService) *ProfileHandler {
 	return &ProfileHandler{
 		service: service,
 	}
+}
+
+// GET /profile/iracing/:id - get iRacing profile by user ID
+func (h *ProfileHandler) GetUserIRacingProfile(c echo.Context) error {
+	idParam := c.Param("id")
+	if idParam == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "user id is required"})
+	}
+
+	var userID int64
+	if _, err := fmt.Sscan(idParam, &userID); err != nil || userID <= 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user id"})
+	}
+
+	profile, err := h.service.GetUserIRacing(c.Request().Context(), userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if profile == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "profile not found"})
+	}
+
+	return c.JSON(http.StatusOK, profile)
 }
 
 // GET /profile/iracing - get current user's iRacing profile

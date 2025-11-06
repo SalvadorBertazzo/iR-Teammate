@@ -30,11 +30,16 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	authProtected.GET("/me", authHandler.Me)          // Get current user from JWT (Example: GET http://localhost:8080/auth/me)
 	authProtected.POST("/logout", authHandler.Logout) // Clear session cookie (Example: POST http://localhost:8080/auth/logout)
 
-	// Profile routes (all protected)
+	// Profile routes
+	// Public route for viewing other users' profiles
+	profilePublic := e.Group("/profile")                                    // Public profile route GROUP (Base: http://localhost:8080/profile)
+	profilePublic.GET("/iracing/:id", profileHandler.GetUserIRacingProfile) // Get iRacing profile by user ID (Example: GET http://localhost:8080/profile/iracing/1)
+
+	// Protected profile routes
 	profileGroup := e.Group("/profile", jwtMiddleware) // Protected profile route GROUP (Base: http://localhost:8080/profile)
 
 	// iRacing Profile - Complete profile operations
-	profileGroup.GET("/iracing", profileHandler.GetIRacingProfile)    // Get complete profile (with licenses & languages) (Example: GET http://localhost:8080/profile/iracing)
+	profileGroup.GET("/iracing", profileHandler.GetIRacingProfile)    // Get current user's complete profile (with licenses & languages) (Example: GET http://localhost:8080/profile/iracing)
 	profileGroup.PUT("/iracing", profileHandler.UpdateIRacingProfile) // Update basic profile info (Example: PUT http://localhost:8080/profile/iracing)
 
 	// Licenses - Individual license operations
