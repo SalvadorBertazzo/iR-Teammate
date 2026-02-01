@@ -1,0 +1,147 @@
+/* Custom styles for iR-Teammate - Light Mode */
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #3b82f6;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+}
+
+.spinner-lg {
+    width: 48px;
+    height: 48px;
+    border-width: 4px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Toast animations */
+.toast-enter {
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-exit {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+/* License colors */
+.license-R { background-color: #dc2626; color: white; }
+.license-D { background-color: #f97316; color: white; }
+.license-C { background-color: #eab308; color: white; }
+.license-B { background-color: #22c55e; color: white; }
+.license-A { background-color: #3b82f6; color: white; }
+.license-P { background-color: #1f2937; color: white; }
+
+/* Category badges */
+.category-sports_car { background-color: #3b82f6; color: white; }
+.category-formula_car { background-color: #8b5cf6; color: white; }
+.category-oval { background-color: #f97316; color: white; }
+.category-dirt_road { background-color: #a16207; color: white; }
+.category-dirt_oval { background-color: #ca8a04; color: white; }
+
+/* Status badges */
+.status-open { background-color: #22c55e; color: white; }
+.status-closed { background-color: #6b7280; color: white; }
+.status-filled { background-color: #8b5cf6; color: white; }
+
+.status-pending { background-color: #eab308; color: white; }
+.status-accepted { background-color: #22c55e; color: white; }
+.status-rejected { background-color: #dc2626; color: white; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Form focus styles */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Card hover effects */
+.post-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Button disabled state */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Comment tree indentation */
+.comment-reply {
+    border-left: 2px solid #e5e7eb;
+    margin-left: 1rem;
+    padding-left: 1rem;
+}
+
+/* Light mode form inputs */
+.form-input {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    color: #1f2937;
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+}

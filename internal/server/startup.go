@@ -11,6 +11,9 @@ func Start(deps *Dependencies) error {
 	e := NewEchoServer()
 	RegisterRoutes(e, deps)
 
+	// Serve frontend static files
+	e.Static("/", "frontend")
+
 	e.Start(":" + deps.Config.Server.Port)
 
 	return nil
