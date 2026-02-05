@@ -64,7 +64,7 @@ export function formatCategory(category) {
     if (!category) return '';
     const labels = {
         sports_car: 'Sports Car',
-        formula_car: 'Formula Car',
+        formula: 'Formula Car',
         oval: 'Oval',
         dirt_road: 'Dirt Road',
         dirt_oval: 'Dirt Oval'

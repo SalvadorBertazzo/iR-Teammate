@@ -9,7 +9,7 @@ export function renderPostForm(post = null) {
 
     const categories = [
         { value: 'sports_car', label: 'Sports Car' },
-        { value: 'formula_car', label: 'Formula Car' },
+        { value: 'formula', label: 'Formula Car' },
         { value: 'oval', label: 'Oval' },
         { value: 'dirt_road', label: 'Dirt Road' },
         { value: 'dirt_oval', label: 'Dirt Oval' }
