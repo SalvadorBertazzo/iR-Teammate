@@ -1,19 +1,37 @@
-/* Custom styles for iR-Teammate - Light Mode */
+/* iR-Teammate - Clean Light Theme */
 
-/* Loading spinner */
+/* ========================================
+   BASE STYLES
+   ======================================== */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   LOADING SPINNER
+   ======================================== */
 .spinner {
-    border: 3px solid rgba(0, 0, 0, 0.1);
+    border: 2px solid #e2e8f0;
     border-left-color: #3b82f6;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 0.8s linear infinite;
+    width: 20px;
+    height: 20px;
+    animation: spin 0.7s linear infinite;
 }
 
 .spinner-lg {
-    width: 48px;
-    height: 48px;
-    border-width: 4px;
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
 }
 
 @keyframes spin {
@@ -22,13 +40,15 @@
     }
 }
 
-/* Toast animations */
+/* ========================================
+   TOAST ANIMATIONS
+   ======================================== */
 .toast-enter {
-    animation: slideIn 0.3s ease-out;
+    animation: slideIn 0.25s ease-out;
 }
 
 .toast-exit {
-    animation: slideOut 0.3s ease-in forwards;
+    animation: slideOut 0.2s ease-in forwards;
 }
 
 @keyframes slideIn {
@@ -53,37 +73,47 @@
     }
 }
 
-/* Modal backdrop */
+/* ========================================
+   MODAL BACKDROP
+   ======================================== */
 .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
 }
 
-/* License colors */
-.license-R { background-color: #dc2626; color: white; }
-.license-D { background-color: #f97316; color: white; }
-.license-C { background-color: #eab308; color: white; }
-.license-B { background-color: #22c55e; color: white; }
-.license-A { background-color: #3b82f6; color: white; }
-.license-P { background-color: #1f2937; color: white; }
+/* ========================================
+   LICENSE BADGES
+   ======================================== */
+.license-R { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.license-D { background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+.license-C { background-color: #fefce8; color: #ca8a04; border: 1px solid #fef08a; }
+.license-B { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.license-A { background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.license-P { background-color: #f8fafc; color: #0f172a; border: 1px solid #e2e8f0; }
 
-/* Category badges */
-.category-sports_car { background-color: #3b82f6; color: white; }
-.category-formula_car { background-color: #8b5cf6; color: white; }
-.category-oval { background-color: #f97316; color: white; }
-.category-dirt_road { background-color: #a16207; color: white; }
-.category-dirt_oval { background-color: #ca8a04; color: white; }
+/* ========================================
+   CATEGORY BADGES
+   ======================================== */
+.category-sports_car { background-color: #eff6ff; color: #1d4ed8; }
+.category-formula_car { background-color: #faf5ff; color: #7c3aed; }
+.category-oval { background-color: #fff7ed; color: #c2410c; }
+.category-dirt_road { background-color: #fef3c7; color: #92400e; }
+.category-dirt_oval { background-color: #fef9c3; color: #a16207; }
 
-/* Status badges */
-.status-open { background-color: #22c55e; color: white; }
-.status-closed { background-color: #6b7280; color: white; }
-.status-filled { background-color: #8b5cf6; color: white; }
+/* ========================================
+   STATUS BADGES
+   ======================================== */
+.status-open { background-color: #dcfce7; color: #15803d; }
+.status-closed { background-color: #f1f5f9; color: #64748b; }
+.status-filled { background-color: #f3e8ff; color: #7c3aed; }
 
-.status-pending { background-color: #eab308; color: white; }
-.status-accepted { background-color: #22c55e; color: white; }
-.status-rejected { background-color: #dc2626; color: white; }
+.status-pending { background-color: #fef9c3; color: #a16207; }
+.status-accepted { background-color: #dcfce7; color: #15803d; }
+.status-rejected { background-color: #fee2e2; color: #dc2626; }
 
-/* Custom scrollbar */
+/* ========================================
+   SCROLLBAR
+   ======================================== */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -91,6 +121,7 @@
 
 ::-webkit-scrollbar-track {
     background: #f1f5f9;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -102,46 +133,166 @@
     background: #94a3b8;
 }
 
-/* Form focus styles */
-input:focus, select:focus, textarea:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
-/* Card hover effects */
+/* ========================================
+   FORM FOCUS STYLES
+   ======================================== */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ========================================
+   POST CARD
+   ======================================== */
 .post-card {
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.2s ease;
 }
 
 .post-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Button disabled state */
+/* ========================================
+   BUTTONS
+   ======================================== */
 button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Comment tree indentation */
+.btn-primary {
+    background: linear-gradient(to bottom, #3b82f6, #2563eb);
+    color: white;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #2563eb, #1d4ed8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-danger {
+    background: linear-gradient(to bottom, #ef4444, #dc2626);
+    color: white;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #dc2626, #b91c1c);
+}
+
+.btn-success {
+    background: linear-gradient(to bottom, #22c55e, #16a34a);
+    color: white;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #16a34a, #15803d);
+}
+
+/* ========================================
+   COMMENT TREE
+   ======================================== */
 .comment-reply {
-    border-left: 2px solid #e5e7eb;
+    border-left: 2px solid #e2e8f0;
     margin-left: 1rem;
     padding-left: 1rem;
 }
 
-/* Light mode form inputs */
+/* ========================================
+   FORM INPUTS
+   ======================================== */
 .form-input {
-    background-color: white;
-    border: 1px solid #d1d5db;
-    color: #1f2937;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    transition: all 0.15s ease;
+}
+
+.form-input:hover:not(:focus) {
+    border-color: #cbd5e1;
 }
 
 .form-input:focus {
     border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .form-input::placeholder {
-    color: #9ca3af;
+    color: #94a3b8;
+}
+
+/* ========================================
+   CHECKBOXES
+   ======================================== */
+input[type="checkbox"] {
+    accent-color: #3b82f6;
+}
+
+/* ========================================
+   LINKS
+   ======================================== */
+a {
+    transition: color 0.15s ease;
+}
+
+/* ========================================
+   SELECTION
+   ======================================== */
+::selection {
+    background: rgba(59, 130, 246, 0.2);
+    color: #0f172a;
+}
+
+::-moz-selection {
+    background: rgba(59, 130, 246, 0.2);
+    color: #0f172a;
+}
+
+/* ========================================
+   CARD COMPONENT
+   ======================================== */
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+    .post-card:hover {
+        transform: none;
+    }
 }

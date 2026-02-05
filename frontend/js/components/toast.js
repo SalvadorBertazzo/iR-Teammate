@@ -8,10 +8,10 @@ export function showToast(options) {
     const container = document.getElementById('toast-container');
 
     const typeStyles = {
-        success: 'bg-green-600 border-green-500',
-        error: 'bg-red-600 border-red-500',
-        warning: 'bg-yellow-600 border-yellow-500',
-        info: 'bg-blue-600 border-blue-500'
+        success: 'bg-green-50 border border-green-200 text-green-800',
+        error: 'bg-red-50 border border-red-200 text-red-800',
+        warning: 'bg-amber-50 border border-amber-200 text-amber-800',
+        info: 'bg-blue-50 border border-blue-200 text-blue-800'
     };
 
     const icons = {

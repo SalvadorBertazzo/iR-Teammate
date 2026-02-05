@@ -31,7 +31,7 @@ export async function render(container, params) {
         container.innerHTML = `
             <div class="max-w-4xl mx-auto">
                 <!-- Back button -->
-                <a href="#/" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6">
+                <a href="#/" class="inline-flex items-center gap-2 text-content-secondary hover:text-brand-600 mb-6 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
@@ -39,44 +39,44 @@ export async function render(container, params) {
                 </a>
 
                 <!-- Post header -->
-                <article class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+                <article class="bg-white rounded-xl border border-surface-200 p-6 mb-6 shadow-soft">
                     <div class="flex flex-wrap items-center gap-2 mb-4">
-                        <span class="px-2 py-1 rounded text-xs font-medium ${getCategoryClass(post.category)}">
+                        <span class="px-2.5 py-1 rounded-md text-xs font-medium ${getCategoryClass(post.category)}">
                             ${formatCategory(post.category)}
                         </span>
-                        <span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(post.status)}">
+                        <span class="px-2.5 py-1 rounded-md text-xs font-medium ${getStatusClass(post.status)}">
                             ${formatStatus(post.status)}
                         </span>
-                        <span class="text-gray-400 text-sm ml-auto">
+                        <span class="text-content-muted text-sm ml-auto">
                             Posted ${formatRelativeTime(post.created_at)}
                         </span>
                     </div>
 
-                    <h1 class="text-2xl font-bold text-gray-900 mb-4">${escapeHtml(post.title)}</h1>
+                    <h1 class="text-2xl font-bold text-content-primary mb-4">${escapeHtml(post.title)}</h1>
 
                     <div class="prose max-w-none mb-6">
-                        <p class="text-gray-700 whitespace-pre-wrap">${escapeHtml(post.body)}</p>
+                        <p class="text-content-secondary whitespace-pre-wrap">${escapeHtml(post.body)}</p>
                     </div>
 
                     <!-- Details grid -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg mb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-surface-50 rounded-lg mb-6 border border-surface-200">
                         <div>
-                            <span class="text-gray-400 text-xs block">Min iRating</span>
-                            <span class="text-gray-900 font-medium">${formatIRating(post.min_irating)}+</span>
+                            <span class="text-content-muted text-xs block mb-1">Min iRating</span>
+                            <span class="text-brand-600 font-bold">${formatIRating(post.min_irating)}+</span>
                         </div>
                         <div>
-                            <span class="text-gray-400 text-xs block">Min License</span>
+                            <span class="text-content-muted text-xs block mb-1">Min License</span>
                             <span class="px-2 py-0.5 rounded text-xs font-medium ${getLicenseClass(post.min_license_level)}">
                                 ${formatLicenseLevel(post.min_license_level)}+
                             </span>
                         </div>
                         <div>
-                            <span class="text-gray-400 text-xs block">Slots</span>
-                            <span class="text-gray-900 font-medium">${post.slots_total}</span>
+                            <span class="text-content-muted text-xs block mb-1">Slots</span>
+                            <span class="text-content-primary font-bold">${post.slots_total}</span>
                         </div>
                         <div>
-                            <span class="text-gray-400 text-xs block">Timezone</span>
-                            <span class="text-gray-900 font-medium">${post.timezone || 'UTC'}</span>
+                            <span class="text-content-muted text-xs block mb-1">Timezone</span>
+                            <span class="text-content-primary font-medium">${post.timezone || 'UTC'}</span>
                         </div>
                     </div>
 
@@ -84,79 +84,79 @@ export async function render(container, params) {
                     <div class="space-y-2 mb-6">
                         ${included.series ? `
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-400 w-24">Series:</span>
-                                <span class="text-gray-900">${escapeHtml(included.series.name)}</span>
+                                <span class="text-content-muted w-24">Series:</span>
+                                <span class="text-content-primary">${escapeHtml(included.series.name)}</span>
                             </div>
                         ` : ''}
                         ${included.track ? `
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-400 w-24">Track:</span>
-                                <span class="text-gray-900">${escapeHtml(included.track.name)}</span>
+                                <span class="text-content-muted w-24">Track:</span>
+                                <span class="text-content-primary">${escapeHtml(included.track.name)}</span>
                             </div>
                         ` : ''}
                         ${included.car_class ? `
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-400 w-24">Car Class:</span>
-                                <span class="text-gray-900">${escapeHtml(included.car_class.name)}</span>
+                                <span class="text-content-muted w-24">Car Class:</span>
+                                <span class="text-content-primary">${escapeHtml(included.car_class.name)}</span>
                             </div>
                         ` : ''}
                         ${included.cars?.length ? `
                             <div class="flex items-start gap-2">
-                                <span class="text-gray-400 w-24">Cars:</span>
-                                <span class="text-gray-900">${included.cars.map(c => escapeHtml(c.name)).join(', ')}</span>
+                                <span class="text-content-muted w-24">Cars:</span>
+                                <span class="text-content-primary">${included.cars.map(c => escapeHtml(c.name)).join(', ')}</span>
                             </div>
                         ` : ''}
                         ${included.event ? `
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-400 w-24">Event:</span>
-                                <span class="text-gray-900">${escapeHtml(included.event.name)}</span>
+                                <span class="text-content-muted w-24">Event:</span>
+                                <span class="text-content-primary">${escapeHtml(included.event.name)}</span>
                             </div>
                         ` : ''}
                         ${post.event_start_at ? `
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-400 w-24">Event Start:</span>
-                                <span class="text-gray-900">${formatDateTime(post.event_start_at)}</span>
+                                <span class="text-content-muted w-24">Event Start:</span>
+                                <span class="text-amber-600 font-medium">${formatDateTime(post.event_start_at)}</span>
                             </div>
                         ` : ''}
                         ${included.languages?.length ? `
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-400 w-24">Languages:</span>
-                                <span class="text-gray-900">${included.languages.map(l => escapeHtml(l.name)).join(', ')}</span>
+                                <span class="text-content-muted w-24">Languages:</span>
+                                <span class="text-content-primary">${included.languages.map(l => escapeHtml(l.name)).join(', ')}</span>
                             </div>
                         ` : ''}
                         ${post.contact_hint ? `
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-400 w-24">Contact:</span>
-                                <span class="text-gray-900">${escapeHtml(post.contact_hint)}</span>
+                                <span class="text-content-muted w-24">Contact:</span>
+                                <span class="text-brand-600">${escapeHtml(post.contact_hint)}</span>
                             </div>
                         ` : ''}
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex gap-3 pt-4 border-t border-gray-200">
+                    <div class="flex flex-wrap gap-3 pt-4 border-t border-surface-200">
                         ${isOwner ? `
-                            <a href="#/posts/${post.id}/edit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors">
+                            <a href="#/posts/${post.id}/edit" class="btn-secondary font-medium py-2 px-4 rounded-lg">
                                 Edit Post
                             </a>
-                            <a href="#/posts/${post.id}/applications" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors">
+                            <a href="#/posts/${post.id}/applications" class="btn-secondary font-medium py-2 px-4 rounded-lg">
                                 View Applications
                             </a>
                         ` : `
                             ${post.status === 'open' ? `
-                                <button id="apply-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                                <button id="apply-btn" class="btn-primary font-medium py-2 px-4 rounded-lg">
                                     Apply to Join
                                 </button>
                             ` : ''}
                         `}
-                        <a href="#/users/${post.user_id}" class="text-blue-600 hover:text-blue-700 py-2 px-4">
+                        <a href="#/users/${post.user_id}" class="text-brand-600 hover:text-brand-700 py-2 px-4 transition-colors">
                             View Author Profile
                         </a>
                     </div>
                 </article>
 
                 <!-- Comments section -->
-                <section class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-4">Comments</h2>
+                <section class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft">
+                    <h2 class="text-xl font-bold text-content-primary mb-4">Comments</h2>
                     <div id="comment-form-container" class="mb-6">
                         ${renderCommentForm(postId)}
                     </div>
@@ -188,7 +188,7 @@ async function loadComments(postId) {
         attachCommentHandlers(postId);
     } catch (error) {
         console.error('Failed to load comments:', error);
-        commentsList.innerHTML = `<p class="text-red-600">Failed to load comments.</p>`;
+        commentsList.innerHTML = `<p class="text-red-500">Failed to load comments.</p>`;
     }
 }
 
@@ -327,17 +327,17 @@ function attachCommentHandlers(postId) {
 function showApplyModal(postId) {
     const content = `
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-content-secondary mb-2">
                 Message (optional)
             </label>
             <textarea id="apply-message"
-                class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 placeholder-gray-400"
+                class="w-full form-input rounded-lg px-3 py-2"
                 rows="4" placeholder="Tell them why you'd be a great teammate..."></textarea>
             <div class="flex gap-3 mt-4">
-                <button id="submit-apply" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                <button id="submit-apply" class="flex-1 btn-primary font-medium py-2 px-4 rounded-lg">
                     Submit Application
                 </button>
-                <button id="cancel-apply" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors">
+                <button id="cancel-apply" class="btn-secondary font-medium py-2 px-4 rounded-lg">
                     Cancel
                 </button>
             </div>

@@ -16,11 +16,11 @@ export function showModal(options) {
 
     container.innerHTML = `
         <div class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col">
-                <div class="flex items-center justify-between p-4 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">${title}</h3>
-                    <button class="modal-close-btn text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-xl shadow-elevated w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between p-4 border-b border-surface-200">
+                    <h3 class="text-lg font-semibold text-content-primary">${title}</h3>
+                    <button class="modal-close-btn text-content-muted hover:text-content-secondary transition-colors p-1 rounded-lg hover:bg-surface-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
@@ -76,16 +76,16 @@ export function showConfirm(options) {
     const { title, message, confirmText = 'Confirm', cancelText = 'Cancel', onConfirm, onCancel, danger = false } = options;
 
     const confirmClass = danger
-        ? 'bg-red-600 hover:bg-red-700'
-        : 'bg-blue-600 hover:bg-blue-700';
+        ? 'btn-danger'
+        : 'btn-primary';
 
     const content = `
-        <p class="text-gray-600 mb-6">${message}</p>
+        <p class="text-content-secondary mb-6">${message}</p>
         <div class="flex gap-3">
-            <button id="modal-confirm" class="${confirmClass} text-white font-medium py-2 px-4 rounded-md flex-1 transition-colors">
+            <button id="modal-confirm" class="${confirmClass} py-2 px-4 rounded-lg flex-1">
                 ${confirmText}
             </button>
-            <button id="modal-cancel" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md flex-1 transition-colors">
+            <button id="modal-cancel" class="btn-secondary py-2 px-4 rounded-lg flex-1">
                 ${cancelText}
             </button>
         </div>

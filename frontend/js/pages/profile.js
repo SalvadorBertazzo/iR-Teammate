@@ -11,9 +11,9 @@ export async function render(container) {
     if (!isLoggedIn()) {
         container.innerHTML = `
             <div class="max-w-2xl mx-auto text-center py-12">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">Login Required</h1>
-                <p class="text-gray-500 mb-6">You need to be logged in to view your profile.</p>
-                <a href="#/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                <h1 class="text-2xl font-bold text-content-primary mb-4">Login Required</h1>
+                <p class="text-content-secondary mb-6">You need to be logged in to view your profile.</p>
+                <a href="#/" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                     Go to Home
                 </a>
             </div>
@@ -30,8 +30,8 @@ export async function render(container) {
         if (!profile) {
             container.innerHTML = `
                 <div class="max-w-2xl mx-auto text-center py-12">
-                    <h1 class="text-2xl font-bold text-gray-900 mb-4">Profile Not Found</h1>
-                    <p class="text-gray-500">Your iRacing profile hasn't been set up yet.</p>
+                    <h1 class="text-2xl font-bold text-content-primary mb-4">Profile Not Found</h1>
+                    <p class="text-content-secondary">Your iRacing profile hasn't been set up yet.</p>
                 </div>
             `;
             return;
@@ -53,34 +53,34 @@ export async function render(container) {
 
         container.innerHTML = `
             <div class="max-w-4xl mx-auto">
-                <h1 class="text-2xl font-bold text-gray-900 mb-6">My Profile</h1>
+                <h1 class="text-2xl font-bold text-content-primary mb-6">My Profile</h1>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Basic Info -->
-                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+                    <div class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft">
+                        <h2 class="text-lg font-semibold text-content-primary mb-4">Basic Information</h2>
                         <form id="profile-form" class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                                <label class="block text-sm font-medium text-content-secondary mb-1">Display Name</label>
                                 <input type="text" name="display_name" value="${escapeHtml(profile.display_name || '')}"
-                                    class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900">
+                                    class="w-full form-input rounded-lg px-3 py-2">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">iRacing ID</label>
+                                <label class="block text-sm font-medium text-content-secondary mb-1">iRacing ID</label>
                                 <input type="number" name="iracing_id" value="${profile.iracing_id || ''}"
-                                    class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900"
+                                    class="w-full form-input rounded-lg px-3 py-2"
                                     placeholder="Your iRacing customer ID">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Club</label>
+                                <label class="block text-sm font-medium text-content-secondary mb-1">Club</label>
                                 <input type="text" name="club" value="${escapeHtml(profile.club || '')}"
-                                    class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900"
+                                    class="w-full form-input rounded-lg px-3 py-2"
                                     placeholder="e.g., DE-AT-CH Club">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                                <label class="block text-sm font-medium text-content-secondary mb-1">Timezone</label>
                                 <select name="timezone"
-                                    class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900">
+                                    class="w-full form-input rounded-lg px-3 py-2">
                                     <option value="">-- Select Timezone --</option>
                                     ${timezones.map(tz => `
                                         <option value="${tz}" ${profile.timezone === tz ? 'selected' : ''}>
@@ -90,32 +90,32 @@ export async function render(container) {
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Racing Time</label>
+                                <label class="block text-sm font-medium text-content-secondary mb-1">Preferred Racing Time</label>
                                 <input type="text" name="preferred_racing_time" value="${escapeHtml(profile.preferred_racing_time || '')}"
-                                    class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900"
+                                    class="w-full form-input rounded-lg px-3 py-2"
                                     placeholder="e.g., Evenings (19:00-23:00 UTC)">
                             </div>
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                            <button type="submit" class="w-full btn-primary font-medium py-2 px-4 rounded-lg">
                                 Save Profile
                             </button>
                         </form>
                     </div>
 
                     <!-- Languages -->
-                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Languages</h2>
+                    <div class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft">
+                        <h2 class="text-lg font-semibold text-content-primary mb-4">Languages</h2>
                         <form id="languages-form">
-                            <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                            <div class="space-y-2 mb-4 max-h-60 overflow-y-auto border border-surface-200 rounded-lg p-2 bg-surface-50">
                                 ${catalogs.languages.map(lang => `
-                                    <label class="flex items-center gap-2 cursor-pointer">
+                                    <label class="flex items-center gap-2 cursor-pointer group">
                                         <input type="checkbox" name="languages" value="${lang.code}"
                                             ${languages.some(l => l.code === lang.code) ? 'checked' : ''}
-                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span class="text-gray-700">${escapeHtml(lang.name)}</span>
+                                            class="rounded border-surface-300 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-content-secondary group-hover:text-content-primary transition-colors">${escapeHtml(lang.name)}</span>
                                     </label>
                                 `).join('')}
                             </div>
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                            <button type="submit" class="w-full btn-primary font-medium py-2 px-4 rounded-lg">
                                 Save Languages
                             </button>
                         </form>
@@ -123,19 +123,19 @@ export async function render(container) {
                 </div>
 
                 <!-- Licenses -->
-                <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mt-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Licenses</h2>
+                <div class="bg-white rounded-xl border border-surface-200 p-6 mt-6 shadow-soft">
+                    <h2 class="text-lg font-semibold text-content-primary mb-4">Licenses</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         ${categories.map(category => {
                             const license = licenses.find(l => l.category === category);
                             return `
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <h3 class="font-medium text-gray-900 mb-3">${formatCategory(category)}</h3>
+                                <div class="bg-surface-50 rounded-lg p-4 border border-surface-200">
+                                    <h3 class="font-medium text-brand-600 mb-3">${formatCategory(category)}</h3>
                                     <form class="license-form space-y-3" data-category="${category}">
                                         <div>
-                                            <label class="block text-xs text-gray-500 mb-1">License</label>
+                                            <label class="block text-xs text-content-muted mb-1">License</label>
                                             <select name="license_level"
-                                                class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-gray-900 text-sm">
+                                                class="w-full form-input rounded-lg px-2 py-1 text-sm">
                                                 ${licenseLevels.map(level => `
                                                     <option value="${level}" ${license?.license_level === level ? 'selected' : ''}>
                                                         ${level}
@@ -144,20 +144,20 @@ export async function render(container) {
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="block text-xs text-gray-500 mb-1">Safety Rating</label>
+                                            <label class="block text-xs text-content-muted mb-1">Safety Rating</label>
                                             <input type="number" name="safety_rating" step="0.01" min="0" max="4.99"
                                                 value="${license?.safety_rating || ''}"
-                                                class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-gray-900 text-sm"
+                                                class="w-full form-input rounded-lg px-2 py-1 text-sm"
                                                 placeholder="e.g., 2.50">
                                         </div>
                                         <div>
-                                            <label class="block text-xs text-gray-500 mb-1">iRating</label>
+                                            <label class="block text-xs text-content-muted mb-1">iRating</label>
                                             <input type="number" name="irating" min="0"
                                                 value="${license?.irating || ''}"
-                                                class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-gray-900 text-sm"
+                                                class="w-full form-input rounded-lg px-2 py-1 text-sm"
                                                 placeholder="e.g., 2000">
                                         </div>
-                                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-2 rounded transition-colors">
+                                        <button type="submit" class="w-full btn-primary text-sm py-1.5 px-2 rounded-lg">
                                             Save
                                         </button>
                                     </form>

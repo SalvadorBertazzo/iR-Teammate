@@ -13,9 +13,9 @@ export async function render(container, params) {
     if (!isLoggedIn()) {
         container.innerHTML = `
             <div class="max-w-2xl mx-auto text-center py-12">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">Login Required</h1>
-                <p class="text-gray-500 mb-6">You need to be logged in to view applications.</p>
-                <a href="#/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                <h1 class="text-2xl font-bold text-content-primary mb-4">Login Required</h1>
+                <p class="text-content-secondary mb-6">You need to be logged in to view applications.</p>
+                <a href="#/" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                     Go to Home
                 </a>
             </div>
@@ -37,9 +37,9 @@ export async function render(container, params) {
         if (user.user_id !== post.user_id) {
             container.innerHTML = `
                 <div class="max-w-2xl mx-auto text-center py-12">
-                    <h1 class="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-                    <p class="text-gray-500 mb-6">You can only view applications for your own posts.</p>
-                    <a href="#/posts/${postId}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                    <h1 class="text-2xl font-bold text-content-primary mb-4">Access Denied</h1>
+                    <p class="text-content-secondary mb-6">You can only view applications for your own posts.</p>
+                    <a href="#/posts/${postId}" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                         View Post
                     </a>
                 </div>
@@ -50,27 +50,27 @@ export async function render(container, params) {
         container.innerHTML = `
             <div class="max-w-4xl mx-auto">
                 <div class="mb-6">
-                    <a href="#/posts/${postId}" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4">
+                    <a href="#/posts/${postId}" class="inline-flex items-center gap-2 text-content-secondary hover:text-brand-600 mb-4 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                         Back to post
                     </a>
-                    <h1 class="text-2xl font-bold text-gray-900">Applications for "${escapeHtml(post.title)}"</h1>
+                    <h1 class="text-2xl font-bold text-content-primary">Applications for "${escapeHtml(post.title)}"</h1>
                 </div>
 
                 <!-- Status filter -->
-                <div class="flex gap-2 mb-6">
-                    <button class="status-filter-btn px-4 py-2 rounded-md bg-blue-600 text-white" data-status="">
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button class="status-filter-btn px-4 py-2 rounded-md btn-primary" data-status="">
                         All
                     </button>
-                    <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="pending">
+                    <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="pending">
                         Pending
                     </button>
-                    <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="accepted">
+                    <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="accepted">
                         Accepted
                     </button>
-                    <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="rejected">
+                    <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="rejected">
                         Rejected
                     </button>
                 </div>
@@ -151,11 +151,11 @@ export async function render(container, params) {
             btn.addEventListener('click', async () => {
                 // Update active state
                 document.querySelectorAll('.status-filter-btn').forEach(b => {
-                    b.classList.remove('bg-blue-600', 'text-white');
-                    b.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                    b.classList.remove('btn-primary');
+                    b.classList.add('btn-secondary');
                 });
-                btn.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
-                btn.classList.add('bg-blue-600', 'text-white');
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
 
                 currentStatus = btn.dataset.status;
                 await loadApplications(currentStatus || null);

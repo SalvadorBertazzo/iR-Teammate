@@ -8,9 +8,9 @@ export async function render(container) {
     if (!isLoggedIn()) {
         container.innerHTML = `
             <div class="max-w-2xl mx-auto text-center py-12">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">Login Required</h1>
-                <p class="text-gray-500 mb-6">You need to be logged in to view your applications.</p>
-                <a href="#/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                <h1 class="text-2xl font-bold text-content-primary mb-4">Login Required</h1>
+                <p class="text-content-secondary mb-6">You need to be logged in to view your applications.</p>
+                <a href="#/" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                     Go to Home
                 </a>
             </div>
@@ -20,20 +20,20 @@ export async function render(container) {
 
     container.innerHTML = `
         <div class="max-w-4xl mx-auto">
-            <h1 class="text-2xl font-bold text-gray-900 mb-6">My Applications</h1>
+            <h1 class="text-2xl font-bold text-content-primary mb-6">My Applications</h1>
 
             <!-- Status filter -->
-            <div class="flex gap-2 mb-6">
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-blue-600 text-white" data-status="">
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-primary" data-status="">
                     All
                 </button>
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="pending">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="pending">
                     Pending
                 </button>
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="accepted">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="accepted">
                     Accepted
                 </button>
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="rejected">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="rejected">
                     Rejected
                 </button>
             </div>
@@ -88,11 +88,11 @@ export async function render(container) {
         btn.addEventListener('click', () => {
             // Update active state
             document.querySelectorAll('.status-filter-btn').forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white');
-                b.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-secondary');
             });
-            btn.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
-            btn.classList.add('bg-blue-600', 'text-white');
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
 
             currentStatus = btn.dataset.status;
             filterAndRender();

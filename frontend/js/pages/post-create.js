@@ -9,9 +9,9 @@ export async function render(container) {
     if (!isLoggedIn()) {
         container.innerHTML = `
             <div class="max-w-2xl mx-auto text-center py-12">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">Login Required</h1>
-                <p class="text-gray-500 mb-6">You need to be logged in to create a post.</p>
-                <a href="#/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                <h1 class="text-2xl font-bold text-content-primary mb-4">Login Required</h1>
+                <p class="text-content-secondary mb-6">You need to be logged in to create a post.</p>
+                <a href="#/" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                     Go to Home
                 </a>
             </div>
@@ -21,8 +21,8 @@ export async function render(container) {
 
     container.innerHTML = `
         <div class="max-w-3xl mx-auto">
-            <h1 class="text-2xl font-bold text-gray-900 mb-6">Create Post</h1>
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <h1 class="text-2xl font-bold text-content-primary mb-6">Create Post</h1>
+            <div class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft">
                 ${renderPostForm()}
             </div>
         </div>

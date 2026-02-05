@@ -8,9 +8,9 @@ export async function render(container) {
     if (!isLoggedIn()) {
         container.innerHTML = `
             <div class="max-w-2xl mx-auto text-center py-12">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">Login Required</h1>
-                <p class="text-gray-500 mb-6">You need to be logged in to view your posts.</p>
-                <a href="#/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                <h1 class="text-2xl font-bold text-content-primary mb-4">Login Required</h1>
+                <p class="text-content-secondary mb-6">You need to be logged in to view your posts.</p>
+                <a href="#/" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                     Go to Home
                 </a>
             </div>
@@ -21,24 +21,24 @@ export async function render(container) {
     container.innerHTML = `
         <div class="max-w-4xl mx-auto">
             <div class="flex items-center justify-between mb-6">
-                <h1 class="text-2xl font-bold text-gray-900">My Posts</h1>
-                <a href="#/posts/create" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                <h1 class="text-2xl font-bold text-content-primary">My Posts</h1>
+                <a href="#/posts/create" class="btn-primary font-medium py-2 px-4 rounded-lg">
                     Create New Post
                 </a>
             </div>
 
             <!-- Status filter -->
-            <div class="flex gap-2 mb-6">
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-blue-600 text-white" data-status="">
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-primary" data-status="">
                     All
                 </button>
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="open">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="open">
                     Open
                 </button>
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="closed">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="closed">
                     Closed
                 </button>
-                <button class="status-filter-btn px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200" data-status="filled">
+                <button class="status-filter-btn px-4 py-2 rounded-md btn-secondary" data-status="filled">
                     Filled
                 </button>
             </div>
@@ -77,11 +77,11 @@ export async function render(container) {
                 <div class="relative">
                     ${renderPostCard(post)}
                     <div class="absolute top-4 right-4 flex gap-2">
-                        <a href="#/posts/${post.id}/edit" class="bg-white hover:bg-gray-50 text-gray-700 text-sm px-3 py-1 rounded-md border border-gray-200 shadow-sm z-10"
+                        <a href="#/posts/${post.id}/edit" class="bg-white hover:bg-surface-50 text-content-secondary hover:text-brand-600 text-sm px-3 py-1 rounded-lg border border-surface-200 z-10 transition-colors shadow-soft"
                             onclick="event.stopPropagation()">
                             Edit
                         </a>
-                        <a href="#/posts/${post.id}/applications" class="bg-white hover:bg-gray-50 text-gray-700 text-sm px-3 py-1 rounded-md border border-gray-200 shadow-sm z-10"
+                        <a href="#/posts/${post.id}/applications" class="bg-white hover:bg-surface-50 text-content-secondary hover:text-brand-600 text-sm px-3 py-1 rounded-lg border border-surface-200 z-10 transition-colors shadow-soft"
                             onclick="event.stopPropagation()">
                             Applications
                         </a>
@@ -101,11 +101,11 @@ export async function render(container) {
         btn.addEventListener('click', async () => {
             // Update active state
             document.querySelectorAll('.status-filter-btn').forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white');
-                b.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-secondary');
             });
-            btn.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
-            btn.classList.add('bg-blue-600', 'text-white');
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
 
             currentStatus = btn.dataset.status;
             await loadPosts(currentStatus);

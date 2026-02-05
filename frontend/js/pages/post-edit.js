@@ -13,9 +13,9 @@ export async function render(container, params) {
     if (!isLoggedIn()) {
         container.innerHTML = `
             <div class="max-w-2xl mx-auto text-center py-12">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">Login Required</h1>
-                <p class="text-gray-500 mb-6">You need to be logged in to edit posts.</p>
-                <a href="#/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                <h1 class="text-2xl font-bold text-content-primary mb-4">Login Required</h1>
+                <p class="text-content-secondary mb-6">You need to be logged in to edit posts.</p>
+                <a href="#/" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                     Go to Home
                 </a>
             </div>
@@ -37,9 +37,9 @@ export async function render(container, params) {
         if (user.user_id !== post.user_id) {
             container.innerHTML = `
                 <div class="max-w-2xl mx-auto text-center py-12">
-                    <h1 class="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-                    <p class="text-gray-500 mb-6">You can only edit your own posts.</p>
-                    <a href="#/posts/${postId}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
+                    <h1 class="text-2xl font-bold text-content-primary mb-4">Access Denied</h1>
+                    <p class="text-content-secondary mb-6">You can only edit your own posts.</p>
+                    <a href="#/posts/${postId}" class="btn-primary font-medium py-2 px-6 rounded-lg inline-block">
                         View Post
                     </a>
                 </div>
@@ -50,12 +50,12 @@ export async function render(container, params) {
         container.innerHTML = `
             <div class="max-w-3xl mx-auto">
                 <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-2xl font-bold text-gray-900">Edit Post</h1>
-                    <button id="delete-post-btn" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                    <h1 class="text-2xl font-bold text-content-primary">Edit Post</h1>
+                    <button id="delete-post-btn" class="btn-danger font-medium py-2 px-4 rounded-lg">
                         Delete Post
                     </button>
                 </div>
-                <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+                <div class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft">
                     ${renderPostForm(post)}
                 </div>
             </div>
