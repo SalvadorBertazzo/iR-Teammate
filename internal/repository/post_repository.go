@@ -210,8 +210,8 @@ func (r *PostRepository) SearchPosts(ctx context.Context, filters dto.PostFilter
 			args = append(args, filters.Status[i])
 		}
 		whereConditions = append(whereConditions, fmt.Sprintf("status IN (%s)", strings.Join(placeholders, ",")))
-	} else {
-		// Default: only open posts if no status filter
+	} else if filters.UserID == nil {
+		// Default: only open posts for public listing (no status filter and no user filter)
 		whereConditions = append(whereConditions, "status = 'open'")
 	}
 
