@@ -10,6 +10,12 @@ const state = {
         tracks: [],
         languages: [],
         loaded: false
+    },
+    relationships: {
+        series_categories: [],
+        series_car_classes: [],
+        car_class_cars: [],
+        loaded: false
     }
 };
 
@@ -76,6 +82,15 @@ export function getCatalogs() {
 export function setCatalogs(catalogs) {
     state.catalogs = { ...catalogs, loaded: true };
     notify('catalogs');
+}
+
+export function getRelationships() {
+    return state.relationships;
+}
+
+export function setRelationships(relationships) {
+    state.relationships = { ...relationships, loaded: true };
+    notify('relationships');
 }
 
 // Helper to find catalog item by ID

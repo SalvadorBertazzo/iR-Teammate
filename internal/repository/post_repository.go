@@ -113,49 +113,49 @@ func (r *PostRepository) Delete(ctx context.Context, id int64) error {
 // SearchPosts searches posts with filters, pagination, and sorting
 // Returns posts and total count
 func (r *PostRepository) SearchPosts(ctx context.Context, filters dto.PostFilters) ([]*model.Post, int64, error) {
-	// Build WHERE conditions and arguments
 	whereConditions := []string{}
 	args := []interface{}{}
+	needDistinct := false
 
 	// Base condition: only public posts (unless filtering by user_id)
-	// If UserID is set, allow private posts (user can see their own posts)
 	if filters.UserID != nil {
-		whereConditions = append(whereConditions, "user_id = ?")
+		whereConditions = append(whereConditions, "posts.user_id = ?")
 		args = append(args, *filters.UserID)
 	} else {
-		whereConditions = append(whereConditions, "is_public = 1")
+		whereConditions = append(whereConditions, "posts.is_public = 1")
 	}
 
 	// Text search in title and body
 	if filters.Search != "" {
 		searchPattern := "%" + filters.Search + "%"
-		whereConditions = append(whereConditions, "(title LIKE ? OR body LIKE ?)")
+		whereConditions = append(whereConditions, "(posts.title LIKE ? OR posts.body LIKE ?)")
 		args = append(args, searchPattern, searchPattern)
 	}
 
-	// Category filter
+	// Category filter (via junction table)
 	if len(filters.Category) > 0 {
 		placeholders := make([]string, len(filters.Category))
 		for i := range filters.Category {
 			placeholders[i] = "?"
 			args = append(args, filters.Category[i])
 		}
-		whereConditions = append(whereConditions, fmt.Sprintf("category IN (%s)", strings.Join(placeholders, ",")))
+		whereConditions = append(whereConditions,
+			fmt.Sprintf("posts.id IN (SELECT post_id FROM post_categories WHERE category IN (%s))",
+				strings.Join(placeholders, ",")))
 	}
 
 	// iRating range
 	if filters.MinIRating != nil {
-		whereConditions = append(whereConditions, "min_irating >= ?")
+		whereConditions = append(whereConditions, "posts.min_irating >= ?")
 		args = append(args, *filters.MinIRating)
 	}
 	if filters.MaxIRating != nil {
-		whereConditions = append(whereConditions, "min_irating <= ?")
+		whereConditions = append(whereConditions, "posts.min_irating <= ?")
 		args = append(args, *filters.MaxIRating)
 	}
 
 	// License level filter
 	if filters.MinLicenseLevel != "" {
-		// License levels: R < D < C < B < A < P
 		licenseOrder := map[string]int{"R": 0, "D": 1, "C": 2, "B": 3, "A": 4, "P": 5}
 		minLevel, ok := licenseOrder[filters.MinLicenseLevel]
 		if ok {
@@ -171,34 +171,91 @@ func (r *PostRepository) SearchPosts(ctx context.Context, filters dto.PostFilter
 					placeholders[i] = "?"
 					args = append(args, validLevels[i])
 				}
-				whereConditions = append(whereConditions, fmt.Sprintf("min_license_level IN (%s)", strings.Join(placeholders, ",")))
+				whereConditions = append(whereConditions, fmt.Sprintf("posts.min_license_level IN (%s)", strings.Join(placeholders, ",")))
 			}
 		}
 	}
 
-	// Series filter
+	// License levels filter (multi-select, exact match)
+	if len(filters.LicenseLevels) > 0 {
+		placeholders := make([]string, len(filters.LicenseLevels))
+		for i := range filters.LicenseLevels {
+			placeholders[i] = "?"
+			args = append(args, filters.LicenseLevels[i])
+		}
+		whereConditions = append(whereConditions, fmt.Sprintf("posts.min_license_level IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	// Series filter (via junction table)
 	if len(filters.SeriesIDs) > 0 {
 		placeholders := make([]string, len(filters.SeriesIDs))
 		for i := range filters.SeriesIDs {
 			placeholders[i] = "?"
 			args = append(args, filters.SeriesIDs[i])
 		}
-		whereConditions = append(whereConditions, fmt.Sprintf("series_id IN (%s)", strings.Join(placeholders, ",")))
+		whereConditions = append(whereConditions,
+			fmt.Sprintf("posts.id IN (SELECT post_id FROM post_series WHERE series_id IN (%s))",
+				strings.Join(placeholders, ",")))
 	}
 
-	// Track filter
+	// Car Class filter (via junction table)
+	if len(filters.CarClassIDs) > 0 {
+		placeholders := make([]string, len(filters.CarClassIDs))
+		for i := range filters.CarClassIDs {
+			placeholders[i] = "?"
+			args = append(args, filters.CarClassIDs[i])
+		}
+		whereConditions = append(whereConditions,
+			fmt.Sprintf("posts.id IN (SELECT post_id FROM post_car_classes WHERE car_class_id IN (%s))",
+				strings.Join(placeholders, ",")))
+	}
+
+	// Track filter (via junction table)
 	if len(filters.TrackIDs) > 0 {
 		placeholders := make([]string, len(filters.TrackIDs))
 		for i := range filters.TrackIDs {
 			placeholders[i] = "?"
 			args = append(args, filters.TrackIDs[i])
 		}
-		whereConditions = append(whereConditions, fmt.Sprintf("track_id IN (%s)", strings.Join(placeholders, ",")))
+		whereConditions = append(whereConditions,
+			fmt.Sprintf("posts.id IN (SELECT post_id FROM post_tracks WHERE track_id IN (%s))",
+				strings.Join(placeholders, ",")))
+	}
+
+	// Language filter (via junction table)
+	if len(filters.LanguageCodes) > 0 {
+		placeholders := make([]string, len(filters.LanguageCodes))
+		for i := range filters.LanguageCodes {
+			placeholders[i] = "?"
+			args = append(args, filters.LanguageCodes[i])
+		}
+		whereConditions = append(whereConditions,
+			fmt.Sprintf("posts.id IN (SELECT post_id FROM post_languages WHERE language_code IN (%s))",
+				strings.Join(placeholders, ",")))
+	}
+
+	// Event IDs filter
+	if len(filters.EventIDs) > 0 {
+		placeholders := make([]string, len(filters.EventIDs))
+		for i := range filters.EventIDs {
+			placeholders[i] = "?"
+			args = append(args, filters.EventIDs[i])
+		}
+		whereConditions = append(whereConditions, fmt.Sprintf("posts.event_id IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	// Has event filter
+	if filters.HasEvent != nil {
+		if *filters.HasEvent {
+			whereConditions = append(whereConditions, "posts.event_id IS NOT NULL")
+		} else {
+			whereConditions = append(whereConditions, "posts.event_id IS NULL")
+		}
 	}
 
 	// Timezone filter
 	if filters.Timezone != "" {
-		whereConditions = append(whereConditions, "timezone = ?")
+		whereConditions = append(whereConditions, "posts.timezone = ?")
 		args = append(args, filters.Timezone)
 	}
 
@@ -209,19 +266,18 @@ func (r *PostRepository) SearchPosts(ctx context.Context, filters dto.PostFilter
 			placeholders[i] = "?"
 			args = append(args, filters.Status[i])
 		}
-		whereConditions = append(whereConditions, fmt.Sprintf("status IN (%s)", strings.Join(placeholders, ",")))
+		whereConditions = append(whereConditions, fmt.Sprintf("posts.status IN (%s)", strings.Join(placeholders, ",")))
 	} else if filters.UserID == nil {
-		// Default: only open posts for public listing (no status filter and no user filter)
-		whereConditions = append(whereConditions, "status = 'open'")
+		whereConditions = append(whereConditions, "posts.status = 'open'")
 	}
 
 	// Event date range
 	if filters.EventStartFrom != nil {
-		whereConditions = append(whereConditions, "event_start_at >= ?")
+		whereConditions = append(whereConditions, "posts.event_start_at >= ?")
 		args = append(args, *filters.EventStartFrom)
 	}
 	if filters.EventStartTo != nil {
-		whereConditions = append(whereConditions, "event_start_at <= ?")
+		whereConditions = append(whereConditions, "posts.event_start_at <= ?")
 		args = append(args, *filters.EventStartTo)
 	}
 
@@ -246,16 +302,16 @@ func (r *PostRepository) SearchPosts(ctx context.Context, filters dto.PostFilter
 			whereClause += " AND "
 		}
 		whereClause += fmt.Sprintf("post_cars.car_id IN (%s)", strings.Join(carPlaceholders, ","))
-		// Need DISTINCT to avoid duplicates when joining with post_cars
+		needDistinct = true
 	}
 
 	// Build ORDER BY clause
-	orderBy := "ORDER BY created_at DESC"
+	orderBy := "ORDER BY posts.created_at DESC"
 	if filters.SortBy != "" {
 		validSortFields := map[string]string{
-			"created_at":     "created_at",
-			"event_start_at": "event_start_at",
-			"min_irating":    "min_irating",
+			"created_at":     "posts.created_at",
+			"event_start_at": "posts.event_start_at",
+			"min_irating":    "posts.min_irating",
 		}
 		if sortField, ok := validSortFields[filters.SortBy]; ok {
 			sortOrder := "DESC"
@@ -290,13 +346,13 @@ func (r *PostRepository) SearchPosts(ctx context.Context, filters dto.PostFilter
 			posts.slots_total, posts.status, posts.is_public, posts.contact_hint,
 			posts.created_at, posts.updated_at
 	`
-	if len(filters.CarIDs) > 0 {
+	if needDistinct {
 		selectClause = strings.Replace(selectClause, "SELECT", "SELECT DISTINCT", 1)
 	}
 
 	// Get total count first (before adding pagination args)
 	countDistinct := ""
-	if len(filters.CarIDs) > 0 {
+	if needDistinct {
 		countDistinct = "DISTINCT "
 	}
 	countQuery := fmt.Sprintf(`

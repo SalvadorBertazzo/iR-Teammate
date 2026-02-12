@@ -27,6 +27,10 @@ export async function deletePost(id) {
     return del(`/posts/${id}`);
 }
 
+export async function updatePostStatus(id, status) {
+    return put(`/posts/${id}`, { status });
+}
+
 export async function listMyPosts(filters = {}) {
     const params = {
         expand: EXPAND_ALL,
@@ -44,9 +48,11 @@ export function buildPostFilters(formData) {
     if (formData.min_irating) filters.min_irating = formData.min_irating;
     if (formData.max_irating) filters.max_irating = formData.max_irating;
     if (formData.min_license_level) filters.min_license_level = formData.min_license_level;
+    if (formData.license_levels?.length) filters.license_levels = formData.license_levels;
     if (formData.series_ids?.length) filters.series_ids = formData.series_ids;
     if (formData.car_ids?.length) filters.car_ids = formData.car_ids;
     if (formData.track_ids?.length) filters.track_ids = formData.track_ids;
+    if (formData.language_codes?.length) filters.language_codes = formData.language_codes;
     if (formData.status?.length) filters.status = formData.status;
     if (formData.event_start_from) filters.event_start_from = formData.event_start_from;
     if (formData.event_start_to) filters.event_start_to = formData.event_start_to;

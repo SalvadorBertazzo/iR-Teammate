@@ -53,6 +53,7 @@ func (s *ProfileService) GetUserIRacing(ctx context.Context, userID int64) (*dto
 		Club:                profile.Club,
 		Timezone:            profile.Timezone,
 		PreferredRacingTime: profile.PreferredRacingTime,
+		ContactHint:         profile.ContactHint,
 		CreatedAt:           profile.CreatedAt,
 		UpdatedAt:           profile.UpdatedAt,
 		Licenses:            licenses,
@@ -85,6 +86,9 @@ func (s *ProfileService) UpdateUserIRacing(ctx context.Context, userID int64, up
 	}
 	if updateData.PreferredRacingTime != nil {
 		existing.PreferredRacingTime = updateData.PreferredRacingTime
+	}
+	if updateData.ContactHint != nil {
+		existing.ContactHint = updateData.ContactHint
 	}
 
 	if err := s.userIRacingRepository.Update(ctx, existing); err != nil {

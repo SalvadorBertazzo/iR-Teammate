@@ -58,7 +58,8 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	catalogs.GET("/cars", catalogHandler.GetCars)              // List all cars (Example: GET http://localhost:8080/catalogs/cars)
 	catalogs.GET("/events", catalogHandler.GetEvents)          // List all events (Example: GET http://localhost:8080/catalogs/events)
 	catalogs.GET("/tracks", catalogHandler.GetTracks)          // List all tracks (Example: GET http://localhost:8080/catalogs/tracks)
-	catalogs.GET("/languages", catalogHandler.GetLanguages)    // List all languages (Example: GET http://localhost:8080/catalogs/languages)
+	catalogs.GET("/languages", catalogHandler.GetLanguages)         // List all languages (Example: GET http://localhost:8080/catalogs/languages)
+	catalogs.GET("/relationships", catalogHandler.GetRelationships) // Get catalog relationships (Example: GET http://localhost:8080/catalogs/relationships)
 
 	// Posts routes
 	postsPublic := e.Group("/posts")                            // Public posts route GROUP (Base: http://localhost:8080/posts)

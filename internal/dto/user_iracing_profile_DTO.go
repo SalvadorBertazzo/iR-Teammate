@@ -13,6 +13,7 @@ type UserIRacingProfileDTO struct {
 	Club                *string                     `json:"club,omitempty"`
 	Timezone            *string                     `json:"timezone,omitempty"`
 	PreferredRacingTime *string                     `json:"preferred_racing_time,omitempty"`
+	ContactHint         *string                     `json:"contact_hint,omitempty"`
 	CreatedAt           time.Time                   `json:"created_at"`
 	UpdatedAt           time.Time                   `json:"updated_at"`
 	Licenses            []*model.UserIRacingLicense `json:"licenses"`

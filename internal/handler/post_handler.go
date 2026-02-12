@@ -74,9 +74,24 @@ func parsePostFilters(c echo.Context) dto.PostFilters {
 		}
 	}
 
-	// License level
+	// License level (single min threshold - legacy)
 	if minLicenseLevel := c.QueryParam("min_license_level"); minLicenseLevel != "" {
 		filters.MinLicenseLevel = strings.TrimSpace(minLicenseLevel)
+	}
+
+	// License levels (comma-separated, multi-select)
+	if licenseLevelsParam := c.QueryParam("license_levels"); licenseLevelsParam != "" {
+		parts := strings.Split(licenseLevelsParam, ",")
+		levels := make([]string, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				levels = append(levels, trimmed)
+			}
+		}
+		if len(levels) > 0 {
+			filters.LicenseLevels = levels
+		}
 	}
 
 	// Series IDs (comma-separated)
@@ -93,6 +108,23 @@ func parsePostFilters(c echo.Context) dto.PostFilters {
 		}
 		if len(seriesIDs) > 0 {
 			filters.SeriesIDs = seriesIDs
+		}
+	}
+
+	// Car Class IDs (comma-separated)
+	if carClassIDsParam := c.QueryParam("car_class_ids"); carClassIDsParam != "" {
+		parts := strings.Split(carClassIDsParam, ",")
+		carClassIDs := make([]int64, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				if val, err := strconv.ParseInt(trimmed, 10, 64); err == nil {
+					carClassIDs = append(carClassIDs, val)
+				}
+			}
+		}
+		if len(carClassIDs) > 0 {
+			filters.CarClassIDs = carClassIDs
 		}
 	}
 
@@ -128,6 +160,44 @@ func parsePostFilters(c echo.Context) dto.PostFilters {
 		if len(trackIDs) > 0 {
 			filters.TrackIDs = trackIDs
 		}
+	}
+
+	// Language codes (comma-separated)
+	if langCodesParam := c.QueryParam("language_codes"); langCodesParam != "" {
+		parts := strings.Split(langCodesParam, ",")
+		codes := make([]string, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				codes = append(codes, trimmed)
+			}
+		}
+		if len(codes) > 0 {
+			filters.LanguageCodes = codes
+		}
+	}
+
+	// Event IDs (comma-separated)
+	if eventIDsParam := c.QueryParam("event_ids"); eventIDsParam != "" {
+		parts := strings.Split(eventIDsParam, ",")
+		eventIDs := make([]int64, 0, len(parts))
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				if val, err := strconv.ParseInt(trimmed, 10, 64); err == nil {
+					eventIDs = append(eventIDs, val)
+				}
+			}
+		}
+		if len(eventIDs) > 0 {
+			filters.EventIDs = eventIDs
+		}
+	}
+
+	// Has event (boolean: "true" or "false")
+	if hasEventParam := c.QueryParam("has_event"); hasEventParam != "" {
+		val := hasEventParam == "true" || hasEventParam == "1"
+		filters.HasEvent = &val
 	}
 
 	// Timezone
@@ -191,10 +261,12 @@ type createPostRequest struct {
 	Title           string     `json:"title"`
 	Body            string     `json:"body"`
 	EventID         *int64     `json:"event_id"`
-	SeriesID        *int64     `json:"series_id"`
-	CarClassID      *int64     `json:"car_class_id"`
-	TrackID         *int64     `json:"track_id"`
 	Category        string     `json:"category"`
+	Categories      []string   `json:"categories"`
+	SeriesIDs       []int64    `json:"series_ids"`
+	CarClassIDs     []int64    `json:"car_class_ids"`
+	CarIDs          []int64    `json:"car_ids"`
+	TrackIDs        []int64    `json:"track_ids"`
 	MinLicenseLevel string     `json:"min_license_level"`
 	MinIRating      int        `json:"min_irating"`
 	Timezone        string     `json:"timezone"`
@@ -203,7 +275,6 @@ type createPostRequest struct {
 	Status          string     `json:"status"`
 	IsPublic        bool       `json:"is_public"`
 	ContactHint     string     `json:"contact_hint"`
-	CarIDs          []int64    `json:"car_ids"`
 	LanguageCodes   []string   `json:"language_codes"`
 }
 
@@ -211,19 +282,20 @@ type updatePostRequest struct {
 	Title           string     `json:"title"`
 	Body            string     `json:"body"`
 	EventID         *int64     `json:"event_id"`
-	SeriesID        *int64     `json:"series_id"`
-	CarClassID      *int64     `json:"car_class_id"`
-	TrackID         *int64     `json:"track_id"`
 	Category        string     `json:"category"`
+	Categories      []string   `json:"categories"`
+	SeriesIDs       []int64    `json:"series_ids"`
+	CarClassIDs     []int64    `json:"car_class_ids"`
+	CarIDs          []int64    `json:"car_ids"`
+	TrackIDs        []int64    `json:"track_ids"`
 	MinLicenseLevel string     `json:"min_license_level"`
 	MinIRating      int        `json:"min_irating"`
 	Timezone        string     `json:"timezone"`
 	EventStartAt    *time.Time `json:"event_start_at"`
 	SlotsTotal      int        `json:"slots_total"`
 	Status          string     `json:"status"`
-	IsPublic        bool       `json:"is_public"`
+	IsPublic        *bool      `json:"is_public"`
 	ContactHint     string     `json:"contact_hint"`
-	CarIDs          []int64    `json:"car_ids"`
 	LanguageCodes   []string   `json:"language_codes"`
 }
 
@@ -235,25 +307,32 @@ func (h *PostHandler) Create(c echo.Context) error {
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
 
+	// Determine categories: prefer multi-select, fall back to legacy single
+	categories := req.Categories
+	if len(categories) == 0 && req.Category != "" {
+		categories = []string{req.Category}
+	}
+
 	post := &model.Post{
 		Title:           req.Title,
 		Body:            req.Body,
 		EventID:         req.EventID,
-		SeriesID:        req.SeriesID,
-		CarClassID:      req.CarClassID,
-		TrackID:         req.TrackID,
 		Category:        req.Category,
 		MinLicenseLevel: req.MinLicenseLevel,
 		MinIRating:      req.MinIRating,
 		Timezone:        req.Timezone,
 		EventStartAt:    req.EventStartAt,
 		SlotsTotal:      req.SlotsTotal,
-		Status:          req.Status,
+		Status:          "open",
 		IsPublic:        req.IsPublic,
 		ContactHint:     req.ContactHint,
 	}
 
-	created, err := h.service.CreatePost(c.Request().Context(), userID, post, req.CarIDs, req.LanguageCodes)
+	created, err := h.service.CreatePost(
+		c.Request().Context(), userID, post,
+		categories, req.SeriesIDs, req.CarClassIDs,
+		req.CarIDs, req.TrackIDs, req.LanguageCodes,
+	)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
@@ -270,7 +349,6 @@ func (h *PostHandler) Update(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
-	// id from URL
 	idParam := c.Param("id")
 	if idParam == "" {
 		return c.NoContent(http.StatusBadRequest)
@@ -282,36 +360,84 @@ func (h *PostHandler) Update(c echo.Context) error {
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
 
-	post := &model.Post{
-		ID:              id,
-		Title:           req.Title,
-		Body:            req.Body,
-		EventID:         req.EventID,
-		SeriesID:        req.SeriesID,
-		CarClassID:      req.CarClassID,
-		TrackID:         req.TrackID,
-		Category:        req.Category,
-		MinLicenseLevel: req.MinLicenseLevel,
-		MinIRating:      req.MinIRating,
-		Timezone:        req.Timezone,
-		EventStartAt:    req.EventStartAt,
-		SlotsTotal:      req.SlotsTotal,
-		Status:          req.Status,
-		IsPublic:        req.IsPublic,
-		ContactHint:     req.ContactHint,
+	// Fetch existing post to use as base for partial updates
+	existing, err := h.service.GetPost(c.Request().Context(), id)
+	if err != nil || existing == nil {
+		return c.NoContent(http.StatusNotFound)
 	}
 
-	_, err := h.service.UpdatePost(c.Request().Context(), userID, post, req.CarIDs, req.LanguageCodes)
+	// Merge: use request values if provided, otherwise keep existing
+	isPublic := existing.IsPublic
+	if req.IsPublic != nil {
+		isPublic = *req.IsPublic
+	}
+
+	post := &model.Post{
+		ID:              id,
+		Title:           orStr(req.Title, existing.Title),
+		Body:            orStr(req.Body, existing.Body),
+		EventID:         req.EventID,
+		Category:        orStr(req.Category, existing.Category),
+		MinLicenseLevel: orStr(req.MinLicenseLevel, existing.MinLicenseLevel),
+		MinIRating:      orInt(req.MinIRating, existing.MinIRating),
+		Timezone:        orStr(req.Timezone, existing.Timezone),
+		EventStartAt:    req.EventStartAt,
+		SlotsTotal:      orIntPositive(req.SlotsTotal, existing.SlotsTotal),
+		Status:          orStr(req.Status, existing.Status),
+		IsPublic:        isPublic,
+		ContactHint:     orStr(req.ContactHint, existing.ContactHint),
+	}
+
+	// If event_id was not sent, keep existing
+	if req.EventID == nil {
+		post.EventID = existing.EventID
+	}
+	// If event_start_at was not sent, keep existing
+	if req.EventStartAt == nil {
+		post.EventStartAt = existing.EventStartAt
+	}
+
+	// Determine categories: prefer multi-select, fall back to legacy single
+	categories := req.Categories
+	if len(categories) == 0 && req.Category != "" {
+		categories = []string{req.Category}
+	}
+
+	_, err = h.service.UpdatePost(
+		c.Request().Context(), userID, post,
+		categories, req.SeriesIDs, req.CarClassIDs,
+		req.CarIDs, req.TrackIDs, req.LanguageCodes,
+	)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	// Return DTO after update for unified response shape
 	expand := parseExpand(c.QueryParam("expand"))
 	dtoItem, derr := h.service.GetPostDTO(c.Request().Context(), id, expand)
 	if derr != nil {
 		return c.String(http.StatusBadRequest, derr.Error())
 	}
 	return c.JSON(http.StatusOK, dtoItem)
+}
+
+func orStr(val, fallback string) string {
+	if val != "" {
+		return val
+	}
+	return fallback
+}
+
+func orInt(val, fallback int) int {
+	if val != 0 {
+		return val
+	}
+	return fallback
+}
+
+func orIntPositive(val, fallback int) int {
+	if val > 0 {
+		return val
+	}
+	return fallback
 }
 
 func (h *PostHandler) Get(c echo.Context) error {
@@ -352,11 +478,9 @@ func (h *PostHandler) Delete(c echo.Context) error {
 }
 
 func (h *PostHandler) ListPublic(c echo.Context) error {
-	// Parse filters from query parameters
 	filters := parsePostFilters(c)
 	expand := parseExpand(c.QueryParam("expand"))
 
-	// Use SearchPostsDTO with parsed filters
 	response, err := h.service.SearchPostsDTO(c.Request().Context(), filters, expand)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())

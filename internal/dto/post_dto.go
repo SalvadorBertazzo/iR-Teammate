@@ -16,6 +16,10 @@ type PostDTO struct {
 	CarIDs          []int64    `json:"car_ids,omitempty"`
 	TrackID         *int64     `json:"track_id,omitempty"`
 	Category        string     `json:"category"`
+	Categories      []string   `json:"categories,omitempty"`
+	SeriesIDs       []int64    `json:"series_ids,omitempty"`
+	CarClassIDs     []int64    `json:"car_class_ids,omitempty"`
+	TrackIDs        []int64    `json:"track_ids,omitempty"`
 	MinLicenseLevel string     `json:"min_license_level"`
 	MinIRating      int        `json:"min_irating"`
 	Timezone        string     `json:"timezone"`
@@ -33,12 +37,15 @@ type PostDTO struct {
 }
 
 type PostIncludedDTO struct {
-	Event     *model.Event      `json:"event,omitempty"`
-	Series    *model.Series     `json:"series,omitempty"`
-	CarClass  *model.CarClass   `json:"car_class,omitempty"`
-	Track     *model.Track      `json:"track,omitempty"`
-	Cars      []*model.Car      `json:"cars,omitempty"`
-	Languages []*model.Language `json:"languages,omitempty"`
+	Event      *model.Event      `json:"event,omitempty"`
+	Series     *model.Series     `json:"series,omitempty"`
+	CarClass   *model.CarClass   `json:"car_class,omitempty"`
+	Track      *model.Track      `json:"track,omitempty"`
+	Cars       []*model.Car      `json:"cars,omitempty"`
+	Languages  []*model.Language `json:"languages,omitempty"`
+	AllSeries  []*model.Series   `json:"all_series,omitempty"`
+	CarClasses []*model.CarClass `json:"car_classes,omitempty"`
+	Tracks     []*model.Track    `json:"tracks,omitempty"`
 }
 
 type PostFilters struct {
@@ -51,11 +58,18 @@ type PostFilters struct {
 	MinIRating *int `json:"min_irating,omitempty"`
 	MaxIRating *int `json:"max_irating,omitempty"`
 
-	MinLicenseLevel string `json:"min_license_level,omitempty"`
+	MinLicenseLevel string   `json:"min_license_level,omitempty"`
+	LicenseLevels   []string `json:"license_levels,omitempty"`
 
-	SeriesIDs []int64 `json:"series_ids,omitempty"`
-	CarIDs    []int64 `json:"car_ids,omitempty"`
-	TrackIDs  []int64 `json:"track_ids,omitempty"`
+	SeriesIDs   []int64 `json:"series_ids,omitempty"`
+	CarClassIDs []int64 `json:"car_class_ids,omitempty"`
+	CarIDs      []int64 `json:"car_ids,omitempty"`
+	TrackIDs    []int64 `json:"track_ids,omitempty"`
+
+	LanguageCodes []string `json:"language_codes,omitempty"`
+
+	EventIDs []int64 `json:"event_ids,omitempty"`
+	HasEvent *bool   `json:"has_event,omitempty"`
 
 	Timezone string `json:"timezone,omitempty"`
 

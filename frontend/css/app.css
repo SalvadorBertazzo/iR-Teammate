@@ -289,10 +289,207 @@ a {
 }
 
 /* ========================================
+   CONTENT SELECTOR (5-column picker)
+   ======================================== */
+.content-selector {
+    width: 100%;
+}
+
+.content-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.content-selector-grid-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border: 1px solid #cbd5e1;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.content-selector-grid:has(+ .content-selector-grid-bottom) {
+    border-radius: 10px 10px 0 0;
+}
+
+.content-selector-column {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e2e8f0;
+    min-width: 0;
+}
+
+.content-selector-column:last-child {
+    border-right: none;
+}
+
+.content-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.content-selector-count {
+    background: #2563eb;
+    color: white;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.content-selector-count:empty {
+    display: none;
+}
+
+.content-selector-search {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    flex-shrink: 0;
+    background: #fafbfc;
+}
+
+.content-selector-search-input {
+    width: 100%;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    transition: border-color 0.15s ease;
+}
+
+.content-selector-search-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.content-selector-items {
+    overflow-y: auto;
+    max-height: 220px;
+    flex: 1;
+    padding: 4px 0;
+}
+
+.content-selector-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.content-selector-item:hover {
+    background: #eff6ff;
+}
+
+.content-selector-item.filter-hidden,
+.content-selector-item.search-hidden,
+.filter-item.filter-hidden {
+    display: none;
+}
+
+/* ========================================
+   FILTER PANEL ACCORDION
+   ======================================== */
+.filter-group {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.filter-group:last-of-type {
+    border-bottom: none;
+}
+
+.filter-group-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+}
+
+.filter-group-header:hover {
+    opacity: 0.75;
+}
+
+.filter-group-content {
+    display: none;
+    padding-bottom: 8px;
+}
+
+.filter-group[data-group-open] .filter-group-content {
+    display: block;
+}
+
+.filter-group-items {
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.filter-group-chevron {
+    transition: transform 0.15s ease;
+}
+
+.filter-group[data-group-open] .filter-group-chevron {
+    transform: rotate(180deg);
+}
+
+.content-selector-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 @media (max-width: 768px) {
     .post-card:hover {
         transform: none;
+    }
+
+    .content-selector-grid,
+    .content-selector-grid-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .content-selector-grid-bottom {
+        border-top: none;
+    }
+
+    .content-selector-column {
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .content-selector-column:last-child {
+        border-bottom: none;
+    }
+
+    .content-selector-items {
+        max-height: 180px;
     }
 }

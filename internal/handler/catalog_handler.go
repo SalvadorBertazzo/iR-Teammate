@@ -69,3 +69,12 @@ func (h *CatalogHandler) GetLanguages(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, items)
 }
+
+// GET /catalogs/relationships
+func (h *CatalogHandler) GetRelationships(c echo.Context) error {
+	rels, err := h.service.GetRelationships(c.Request().Context())
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, rels)
+}

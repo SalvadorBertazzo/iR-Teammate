@@ -1,6 +1,6 @@
 // Catalogs API functions
 import { get } from './client.js';
-import { setCatalogs, getCatalogs } from '../state.js';
+import { setCatalogs, getCatalogs, setRelationships, getRelationships } from '../state.js';
 
 export async function loadCatalogs() {
     const current = getCatalogs();
@@ -31,6 +31,27 @@ export async function loadCatalogs() {
         return catalogs;
     } catch (error) {
         console.error('Failed to load catalogs:', error);
+        throw error;
+    }
+}
+
+export async function loadRelationships() {
+    const current = getRelationships();
+    if (current.loaded) {
+        return current;
+    }
+
+    try {
+        const data = await get('/catalogs/relationships');
+        const relationships = {
+            series_categories: data.series_categories || [],
+            series_car_classes: data.series_car_classes || [],
+            car_class_cars: data.car_class_cars || []
+        };
+        setRelationships(relationships);
+        return relationships;
+    } catch (error) {
+        console.error('Failed to load relationships:', error);
         throw error;
     }
 }

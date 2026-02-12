@@ -30,7 +30,7 @@ export function showToast(options) {
     };
 
     const toast = document.createElement('div');
-    toast.className = `toast-enter flex items-center gap-3 px-4 py-3 rounded-lg border text-white shadow-lg ${typeStyles[type]}`;
+    toast.className = `toast-enter flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${typeStyles[type]}`;
     toast.innerHTML = `
         ${icons[type]}
         <span class="flex-1">${message}</span>

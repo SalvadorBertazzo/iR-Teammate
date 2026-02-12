@@ -63,6 +63,9 @@ export async function render(container, params) {
                                 ${profile.preferred_racing_time ? `
                                     <span>Preferred Time: ${escapeHtml(profile.preferred_racing_time)}</span>
                                 ` : ''}
+                                ${profile.contact_hint ? `
+                                    <span>Contact: <span class="text-brand-600">${escapeHtml(profile.contact_hint)}</span></span>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -86,7 +89,7 @@ export async function render(container, params) {
                 ${licenses.length > 0 ? `
                     <div class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft">
                         <h2 class="text-lg font-semibold text-content-primary mb-4">Licenses</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                             ${licenses.map(license => `
                                 <div class="bg-surface-50 rounded-lg p-4 border border-surface-200">
                                     <h3 class="font-medium text-brand-600 mb-2">${formatCategory(license.category)}</h3>

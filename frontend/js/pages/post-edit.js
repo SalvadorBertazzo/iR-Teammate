@@ -1,7 +1,9 @@
 // Post edit page
 import { getUser, isLoggedIn } from '../state.js';
 import { getPost, updatePost, deletePost } from '../api/posts.js';
+import { loadRelationships } from '../api/catalogs.js';
 import { renderPostForm, getPostFormValues } from '../components/post-form.js';
+import { initContentSelector, renderContentSelector } from '../components/content-selector.js';
 import { renderLoading, renderError } from '../components/loading.js';
 import { showConfirm } from '../components/modal.js';
 import toast from '../components/toast.js';
@@ -26,7 +28,11 @@ export async function render(container, params) {
     container.innerHTML = renderLoading('Loading post...');
 
     try {
-        const post = await getPost(postId);
+        // Load relationships and post data in parallel
+        const [post] = await Promise.all([
+            getPost(postId),
+            loadRelationships()
+        ]);
 
         if (!post) {
             container.innerHTML = renderError('Post not found');
@@ -48,7 +54,7 @@ export async function render(container, params) {
         }
 
         container.innerHTML = `
-            <div class="max-w-3xl mx-auto">
+            <div class="max-w-5xl mx-auto">
                 <div class="flex items-center justify-between mb-6">
                     <h1 class="text-2xl font-bold text-content-primary">Edit Post</h1>
                     <button id="delete-post-btn" class="btn-danger font-medium py-2 px-4 rounded-lg">
@@ -60,6 +66,30 @@ export async function render(container, params) {
                 </div>
             </div>
         `;
+
+        // Determine initial post type
+        const isSpecialEvent = !!post.event_id;
+
+        if (isSpecialEvent) {
+            // Render event content selector into the wrap
+            const wrap = document.getElementById('content-selector-event-wrap');
+            const eventSelectorValues = {
+                car_class_ids: post.car_class_ids || (post.car_class_id ? [post.car_class_id] : []),
+                car_ids: post.car_ids || [],
+                track_ids: post.track_ids || (post.track_id ? [post.track_id] : [])
+            };
+            // Rename the normal selector so the event one gets the id
+            const normalCS = document.querySelector('#content-section-normal [data-mode="normal"]');
+            if (normalCS) normalCS.id = 'content-selector-inactive';
+            wrap.innerHTML = renderContentSelector(eventSelectorValues, 'event');
+            initContentSelector();
+        } else {
+            // Initialize normal content selector
+            initContentSelector();
+        }
+
+        // Initialize post type tab switching
+        initPostTypeTabs(isSpecialEvent);
 
         const form = document.getElementById('post-form');
 
@@ -107,4 +137,57 @@ export async function render(container, params) {
         console.error('Failed to load post:', error);
         container.innerHTML = renderError('Failed to load post. Please try again.');
     }
+}
+
+function initPostTypeTabs(eventSelectorRendered) {
+    const form = document.getElementById('post-form');
+    if (!form) return;
+
+    const tabs = form.querySelectorAll('.post-type-tab');
+    const normalSection = document.getElementById('content-section-normal');
+    const eventSection = document.getElementById('content-section-event');
+    let eventRendered = eventSelectorRendered;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const postType = tab.dataset.postType;
+            form.dataset.postType = postType;
+
+            // Update tab styles
+            tabs.forEach(t => {
+                if (t.dataset.postType === postType) {
+                    t.className = 'post-type-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-brand-600 text-white';
+                } else {
+                    t.className = 'post-type-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-surface-100 text-content-secondary hover:bg-surface-200';
+                }
+            });
+
+            if (postType === 'special_event') {
+                normalSection.classList.add('hidden');
+                eventSection.classList.remove('hidden');
+
+                if (!eventRendered) {
+                    const wrap = document.getElementById('content-selector-event-wrap');
+                    const normalCS = normalSection.querySelector('[data-mode="normal"]');
+                    if (normalCS) normalCS.id = 'content-selector-inactive';
+                    wrap.innerHTML = renderContentSelector({}, 'event');
+                    initContentSelector();
+                    eventRendered = true;
+                } else {
+                    const normalCS = normalSection.querySelector('[data-mode="normal"]');
+                    const eventCS = eventSection.querySelector('[data-mode="event"]');
+                    if (normalCS) normalCS.id = 'content-selector-inactive';
+                    if (eventCS) eventCS.id = 'content-selector';
+                }
+            } else {
+                normalSection.classList.remove('hidden');
+                eventSection.classList.add('hidden');
+
+                const normalCS = normalSection.querySelector('[data-mode="normal"]');
+                const eventCS = eventSection.querySelector('[data-mode="event"]');
+                if (normalCS) normalCS.id = 'content-selector';
+                if (eventCS) eventCS.id = 'content-selector-inactive';
+            }
+        });
+    });
 }

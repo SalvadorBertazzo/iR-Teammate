@@ -40,7 +40,7 @@ export async function render(container) {
         const licenses = profile.licenses || [];
         const languages = profile.languages || [];
 
-        const categories = ['road', 'oval', 'dirt_road', 'dirt_oval'];
+        const categories = ['sports_car', 'formula', 'oval', 'dirt_road', 'dirt_oval'];
         const licenseLevels = ['R', 'D', 'C', 'B', 'A', 'P'];
 
         const timezones = [
@@ -95,6 +95,12 @@ export async function render(container) {
                                     class="w-full form-input rounded-lg px-3 py-2"
                                     placeholder="e.g., Evenings (19:00-23:00 UTC)">
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium text-content-secondary mb-1">Contact Hint</label>
+                                <input type="text" name="contact_hint" value="${escapeHtml(profile.contact_hint || '')}"
+                                    class="w-full form-input rounded-lg px-3 py-2"
+                                    placeholder="e.g., Discord: username#1234">
+                            </div>
                             <button type="submit" class="w-full btn-primary font-medium py-2 px-4 rounded-lg">
                                 Save Profile
                             </button>
@@ -102,10 +108,10 @@ export async function render(container) {
                     </div>
 
                     <!-- Languages -->
-                    <div class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft">
+                    <div class="bg-white rounded-xl border border-surface-200 p-6 shadow-soft flex flex-col">
                         <h2 class="text-lg font-semibold text-content-primary mb-4">Languages</h2>
-                        <form id="languages-form">
-                            <div class="space-y-2 mb-4 max-h-60 overflow-y-auto border border-surface-200 rounded-lg p-2 bg-surface-50">
+                        <form id="languages-form" class="flex flex-col flex-1">
+                            <div class="space-y-2 mb-4 overflow-y-auto border border-surface-200 rounded-lg p-2 bg-surface-50 flex-1">
                                 ${catalogs.languages.map(lang => `
                                     <label class="flex items-center gap-2 cursor-pointer group">
                                         <input type="checkbox" name="languages" value="${lang.code}"
@@ -125,7 +131,7 @@ export async function render(container) {
                 <!-- Licenses -->
                 <div class="bg-white rounded-xl border border-surface-200 p-6 mt-6 shadow-soft">
                     <h2 class="text-lg font-semibold text-content-primary mb-4">Licenses</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                         ${categories.map(category => {
                             const license = licenses.find(l => l.category === category);
                             return `
@@ -179,7 +185,8 @@ export async function render(container) {
                 display_name: formData.get('display_name'),
                 club: formData.get('club') || null,
                 timezone: formData.get('timezone') || null,
-                preferred_racing_time: formData.get('preferred_racing_time') || null
+                preferred_racing_time: formData.get('preferred_racing_time') || null,
+                contact_hint: formData.get('contact_hint') || null
             };
 
             const iracingId = formData.get('iracing_id');

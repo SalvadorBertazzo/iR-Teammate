@@ -6,6 +6,12 @@ import (
 	"iR-Teammate/internal/repository"
 )
 
+type CatalogRelationshipsDTO struct {
+	SeriesCategories []*model.SeriesCategory `json:"series_categories"`
+	SeriesCarClasses []*model.SeriesCarClass  `json:"series_car_classes"`
+	CarClassCars     []*model.CarClassCar     `json:"car_class_cars"`
+}
+
 type CatalogService struct {
 	seriesRepo   *repository.SeriesRepository
 	carClassRepo *repository.CarClassRepository
@@ -13,6 +19,7 @@ type CatalogService struct {
 	eventRepo    *repository.EventRepository
 	trackRepo    *repository.TrackRepository
 	languageRepo *repository.UserLanguageRepository
+	relRepo      *repository.CatalogRelationshipRepository
 }
 
 func NewCatalogService(
@@ -22,6 +29,7 @@ func NewCatalogService(
 	eventRepo *repository.EventRepository,
 	trackRepo *repository.TrackRepository,
 	languageRepo *repository.UserLanguageRepository,
+	relRepo *repository.CatalogRelationshipRepository,
 ) *CatalogService {
 	return &CatalogService{
 		seriesRepo:   seriesRepo,
@@ -30,6 +38,7 @@ func NewCatalogService(
 		eventRepo:    eventRepo,
 		trackRepo:    trackRepo,
 		languageRepo: languageRepo,
+		relRepo:      relRepo,
 	}
 }
 
@@ -55,4 +64,24 @@ func (s *CatalogService) GetTracks(ctx context.Context) ([]*model.Track, error) 
 
 func (s *CatalogService) GetLanguages(ctx context.Context) ([]*model.Language, error) {
 	return s.languageRepo.GetAllLanguages(ctx)
+}
+
+func (s *CatalogService) GetRelationships(ctx context.Context) (*CatalogRelationshipsDTO, error) {
+	seriesCategories, err := s.relRepo.GetAllSeriesCategories(ctx)
+	if err != nil {
+		return nil, err
+	}
+	seriesCarClasses, err := s.relRepo.GetAllSeriesCarClasses(ctx)
+	if err != nil {
+		return nil, err
+	}
+	carClassCars, err := s.relRepo.GetAllCarClassCars(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &CatalogRelationshipsDTO{
+		SeriesCategories: seriesCategories,
+		SeriesCarClasses: seriesCarClasses,
+		CarClassCars:     carClassCars,
+	}, nil
 }

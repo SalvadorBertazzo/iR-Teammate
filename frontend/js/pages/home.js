@@ -1,12 +1,16 @@
 // Home page - List public posts
 import { listPublicPosts } from '../api/posts.js';
+import { loadRelationships } from '../api/catalogs.js';
 import { renderPostCard, attachPostCardListeners } from '../components/post-card.js';
-import { renderFilterPanel, getFilterValues } from '../components/filter-panel.js';
+import { renderFilterPanel, getFilterValues, initFilterPanel } from '../components/filter-panel.js';
 import { renderLoading, renderError, renderEmpty } from '../components/loading.js';
 
 let currentFilters = {};
 
 export async function render(container) {
+    // Load relationships for bidirectional filtering (cached if already loaded)
+    await loadRelationships();
+
     container.innerHTML = `
         <div class="flex flex-col lg:flex-row gap-6">
             <main class="flex-1 order-2 lg:order-1">
@@ -47,6 +51,7 @@ export async function render(container) {
 
     // Render filter panel
     filterPanel.innerHTML = renderFilterPanel(currentFilters);
+    initFilterPanel();
 
     // Attach filter handlers
     attachFilterHandlers();
@@ -76,6 +81,7 @@ export async function render(container) {
             currentFilters = {};
             searchInput.value = '';
             filterPanel.innerHTML = renderFilterPanel({});
+            initFilterPanel();
             attachFilterHandlers();
             await loadPosts();
         });

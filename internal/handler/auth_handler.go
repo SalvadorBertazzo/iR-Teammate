@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -92,11 +93,15 @@ func (h *AuthHandler) Me(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	resp := map[string]interface{}{
 		"user_id":    userID,
 		"discord_id": discordID,
 		"username":   user.Username,
-	})
+	}
+	if user.Avatar != nil && *user.Avatar != "" {
+		resp["avatar"] = fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.png?size=64", discordID, *user.Avatar)
+	}
+	return c.JSON(http.StatusOK, resp)
 }
 
 // POST /auth/logout

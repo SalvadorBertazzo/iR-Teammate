@@ -74,7 +74,13 @@ func runMigrations(db *sql.DB) error {
 		}
 
 		if _, err := db.Exec(string(content)); err != nil {
-			return fmt.Errorf("failed to execute migration %s: %w", fileName, err)
+			// SQLite ALTER TABLE ADD COLUMN doesn't support IF NOT EXISTS,
+			// so ignore "duplicate column" errors for idempotent re-runs.
+			if strings.Contains(err.Error(), "duplicate column name") {
+				log.Printf("Migration %s: column already exists, skipping", fileName)
+			} else {
+				return fmt.Errorf("failed to execute migration %s: %w", fileName, err)
+			}
 		}
 
 		log.Printf("Migration %s completed successfully", fileName)

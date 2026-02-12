@@ -1,5 +1,5 @@
 // Post detail page
-import { getPost } from '../api/posts.js';
+import { getPost, updatePostStatus } from '../api/posts.js';
 import { listComments, createComment, createReply, deleteComment } from '../api/comments.js';
 import { createApplication } from '../api/applications.js';
 import { getUser, isLoggedIn } from '../state.js';
@@ -44,7 +44,7 @@ export async function render(container, params) {
                         <span class="px-2.5 py-1 rounded-md text-xs font-medium ${getCategoryClass(post.category)}">
                             ${formatCategory(post.category)}
                         </span>
-                        <span class="px-2.5 py-1 rounded-md text-xs font-medium ${getStatusClass(post.status)}">
+                        <span data-status-badge class="px-2.5 py-1 rounded-md text-xs font-medium ${getStatusClass(post.status)}">
                             ${formatStatus(post.status)}
                         </span>
                         <span class="text-content-muted text-sm ml-auto">
@@ -133,8 +133,14 @@ export async function render(container, params) {
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex flex-wrap gap-3 pt-4 border-t border-surface-200">
+                    <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-surface-200">
                         ${isOwner ? `
+                            <select id="status-select" class="form-input rounded-lg px-3 py-2">
+                                <option value="open" ${post.status === 'open' ? 'selected' : ''}>Open</option>
+                                <option value="closed" ${post.status === 'closed' ? 'selected' : ''}>Closed</option>
+                                <option value="filled" ${post.status === 'filled' ? 'selected' : ''}>Filled</option>
+                                <option value="cancelled" ${post.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
                             <a href="#/posts/${post.id}/edit" class="btn-secondary font-medium py-2 px-4 rounded-lg">
                                 Edit Post
                             </a>
@@ -147,10 +153,10 @@ export async function render(container, params) {
                                     Apply to Join
                                 </button>
                             ` : ''}
+                            <a href="#/users/${post.user_id}" class="text-brand-600 hover:text-brand-700 py-2 px-4 transition-colors">
+                                View Author Profile
+                            </a>
                         `}
-                        <a href="#/users/${post.user_id}" class="text-brand-600 hover:text-brand-700 py-2 px-4 transition-colors">
-                            View Author Profile
-                        </a>
                     </div>
                 </article>
 
@@ -199,6 +205,27 @@ function attachHandlers(postId, isOwner) {
         loginLink.addEventListener('click', (e) => {
             e.preventDefault();
             login();
+        });
+    }
+
+    // Status dropdown for owner
+    const statusSelect = document.getElementById('status-select');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', async () => {
+            const newStatus = statusSelect.value;
+            try {
+                await updatePostStatus(postId, newStatus);
+                toast.success(`Status changed to ${newStatus}`);
+                // Update the status badge in the header
+                const statusBadge = document.querySelector('[data-status-badge]');
+                if (statusBadge) {
+                    statusBadge.className = `px-2.5 py-1 rounded-md text-xs font-medium ${getStatusClass(newStatus)}`;
+                    statusBadge.textContent = formatStatus(newStatus);
+                }
+            } catch (error) {
+                console.error('Failed to update status:', error);
+                toast.error(error.message || 'Failed to update status');
+            }
         });
     }
 

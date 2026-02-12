@@ -52,15 +52,24 @@ func Setup(config config.Config) (*Dependencies, error) {
 	postLanguageRepository := repository.NewPostLanguageRepository(sqlxDB)
 	commentRepository := repository.NewCommentRepository(sqlxDB)
 	postApplicationRepository := repository.NewPostApplicationRepository(sqlxDB)
+	catalogRelationshipRepository := repository.NewCatalogRelationshipRepository(sqlxDB)
+	postCategoryRepository := repository.NewPostCategoryRepository(sqlxDB)
+	postSeriesRepository := repository.NewPostSeriesRepository(sqlxDB)
+	postCarClassRepository := repository.NewPostCarClassRepository(sqlxDB)
+	postTrackRepository := repository.NewPostTrackRepository(sqlxDB)
 
 	// Services
 	authService := service.NewAuthService(userRepository, userIRacingRepository, oauthCfg, config.JWT)
 	profileService := service.NewProfileService(userIRacingRepository, userIRacingLicenseRepository, userLanguageRepository)
-	catalogService := service.NewCatalogService(seriesRepository, carClassRepository, carRepository, eventRepository, trackRepository, userLanguageRepository)
+	catalogService := service.NewCatalogService(seriesRepository, carClassRepository, carRepository, eventRepository, trackRepository, userLanguageRepository, catalogRelationshipRepository)
 	postService := service.NewPostService(
 		postRepository,
 		postCarRepository,
 		postLanguageRepository,
+		postCategoryRepository,
+		postSeriesRepository,
+		postCarClassRepository,
+		postTrackRepository,
 		seriesRepository,
 		carClassRepository,
 		carRepository,

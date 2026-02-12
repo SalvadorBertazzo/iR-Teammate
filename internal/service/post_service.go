@@ -9,9 +9,13 @@ import (
 )
 
 type PostService struct {
-	postRepo     *repository.PostRepository
-	postCarRepo  *repository.PostCarRepository
-	postLangRepo *repository.PostLanguageRepository
+	postRepo         *repository.PostRepository
+	postCarRepo      *repository.PostCarRepository
+	postLangRepo     *repository.PostLanguageRepository
+	postCategoryRepo *repository.PostCategoryRepository
+	postSeriesRepo   *repository.PostSeriesRepository
+	postCarClassRepo *repository.PostCarClassRepository
+	postTrackRepo    *repository.PostTrackRepository
 
 	// Catalog repositories used to expand DTOs
 	seriesRepo   *repository.SeriesRepository
@@ -27,6 +31,10 @@ func NewPostService(
 	postRepo *repository.PostRepository,
 	postCarRepo *repository.PostCarRepository,
 	postLangRepo *repository.PostLanguageRepository,
+	postCategoryRepo *repository.PostCategoryRepository,
+	postSeriesRepo *repository.PostSeriesRepository,
+	postCarClassRepo *repository.PostCarClassRepository,
+	postTrackRepo *repository.PostTrackRepository,
 	seriesRepo *repository.SeriesRepository,
 	carClassRepo *repository.CarClassRepository,
 	carRepo *repository.CarRepository,
@@ -35,27 +43,43 @@ func NewPostService(
 	userLangRepo *repository.UserLanguageRepository,
 ) *PostService {
 	return &PostService{
-		postRepo:     postRepo,
-		postCarRepo:  postCarRepo,
-		postLangRepo: postLangRepo,
-		seriesRepo:   seriesRepo,
-		carClassRepo: carClassRepo,
-		carRepo:      carRepo,
-		eventRepo:    eventRepo,
-		trackRepo:    trackRepo,
-		userLangRepo: userLangRepo,
+		postRepo:         postRepo,
+		postCarRepo:      postCarRepo,
+		postLangRepo:     postLangRepo,
+		postCategoryRepo: postCategoryRepo,
+		postSeriesRepo:   postSeriesRepo,
+		postCarClassRepo: postCarClassRepo,
+		postTrackRepo:    postTrackRepo,
+		seriesRepo:       seriesRepo,
+		carClassRepo:     carClassRepo,
+		carRepo:          carRepo,
+		eventRepo:        eventRepo,
+		trackRepo:        trackRepo,
+		userLangRepo:     userLangRepo,
 	}
 }
 
-// CreatePost creates a post and replaces its N:M relations (cars, languages)
-// It assumes FK constraints will enforce the existence of referenced IDs.
-func (s *PostService) CreatePost(ctx context.Context, userID int64, post *model.Post, carIDs []int64, languageCodes []string) (*model.Post, error) {
+// GetPost returns a raw model.Post by ID
+func (s *PostService) GetPost(ctx context.Context, id int64) (*model.Post, error) {
+	return s.postRepo.GetByID(ctx, id)
+}
+
+// CreatePost creates a post and replaces its N:M relations
+func (s *PostService) CreatePost(
+	ctx context.Context, userID int64, post *model.Post,
+	categories []string, seriesIDs []int64, carClassIDs []int64,
+	carIDs []int64, trackIDs []int64, languageCodes []string,
+) (*model.Post, error) {
 	if post == nil {
 		return nil, fmt.Errorf("post is required")
 	}
 	post.UserID = userID
 
-	// Basic category validation (mirrors DB CHECK)
+	// Use the first category for the legacy column (NOT NULL)
+	if len(categories) > 0 {
+		post.Category = categories[0]
+	}
+
 	if err := s.validateCategory(post.Category); err != nil {
 		return nil, err
 	}
@@ -66,20 +90,35 @@ func (s *PostService) CreatePost(ctx context.Context, userID int64, post *model.
 	}
 	post.ID = id
 
-	// Upsert relations (replace full set)
+	// Upsert multi-select relations
+	if err := s.postCategoryRepo.UpsertForPost(ctx, post.ID, categories); err != nil {
+		return nil, err
+	}
+	if err := s.postSeriesRepo.UpsertForPost(ctx, post.ID, seriesIDs); err != nil {
+		return nil, err
+	}
+	if err := s.postCarClassRepo.UpsertForPost(ctx, post.ID, carClassIDs); err != nil {
+		return nil, err
+	}
 	if err := s.postCarRepo.UpsertForPost(ctx, post.ID, carIDs); err != nil {
+		return nil, err
+	}
+	if err := s.postTrackRepo.UpsertForPost(ctx, post.ID, trackIDs); err != nil {
 		return nil, err
 	}
 	if err := s.postLangRepo.UpsertForPost(ctx, post.ID, languageCodes); err != nil {
 		return nil, err
 	}
 
-	// Return the freshly created post (without joins)
 	return post, nil
 }
 
-// UpdatePost updates a post (ownership required) and replaces cars/languages sets
-func (s *PostService) UpdatePost(ctx context.Context, userID int64, post *model.Post, carIDs []int64, languageCodes []string) (*model.Post, error) {
+// UpdatePost updates a post (ownership required) and replaces all N:M relations
+func (s *PostService) UpdatePost(
+	ctx context.Context, userID int64, post *model.Post,
+	categories []string, seriesIDs []int64, carClassIDs []int64,
+	carIDs []int64, trackIDs []int64, languageCodes []string,
+) (*model.Post, error) {
 	if post == nil || post.ID == 0 {
 		return nil, fmt.Errorf("post id is required")
 	}
@@ -95,21 +134,44 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int64, post *model.
 		return nil, fmt.Errorf("forbidden: not the owner")
 	}
 
-	// Optional: validate category if provided/changed
+	// Use the first category for the legacy column
+	if len(categories) > 0 {
+		post.Category = categories[0]
+	}
+
 	if post.Category != "" {
 		if err := s.validateCategory(post.Category); err != nil {
 			return nil, err
 		}
 	}
 
-	// Persist main post update
 	if err := s.postRepo.Update(ctx, post); err != nil {
 		return nil, err
 	}
 
-	// Replace relations
+	// Replace multi-select relations
+	if categories != nil {
+		if err := s.postCategoryRepo.UpsertForPost(ctx, post.ID, categories); err != nil {
+			return nil, err
+		}
+	}
+	if seriesIDs != nil {
+		if err := s.postSeriesRepo.UpsertForPost(ctx, post.ID, seriesIDs); err != nil {
+			return nil, err
+		}
+	}
+	if carClassIDs != nil {
+		if err := s.postCarClassRepo.UpsertForPost(ctx, post.ID, carClassIDs); err != nil {
+			return nil, err
+		}
+	}
 	if carIDs != nil {
 		if err := s.postCarRepo.UpsertForPost(ctx, post.ID, carIDs); err != nil {
+			return nil, err
+		}
+	}
+	if trackIDs != nil {
+		if err := s.postTrackRepo.UpsertForPost(ctx, post.ID, trackIDs); err != nil {
 			return nil, err
 		}
 	}
@@ -119,7 +181,6 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int64, post *model.
 		}
 	}
 
-	// Fetch updated
 	updated, err := s.postRepo.GetByID(ctx, post.ID)
 	if err != nil {
 		return nil, err
@@ -130,7 +191,7 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int64, post *model.
 // validateCategory ensures the category matches allowed values (mirrors DB CHECK)
 func (s *PostService) validateCategory(category string) error {
 	switch category {
-	case "sports_car", "formula", "oval", "dirt_road", "dirt_oval":
+	case "", "sports_car", "formula", "oval", "dirt_road", "dirt_oval":
 		return nil
 	default:
 		return fmt.Errorf("invalid category: %s", category)
@@ -139,13 +200,12 @@ func (s *PostService) validateCategory(category string) error {
 
 // validateFilters validates and normalizes filter criteria
 func (s *PostService) validateFilters(filters *dto.PostFilters) error {
-	// Validate UserID
 	if filters.UserID != nil && *filters.UserID <= 0 {
 		return fmt.Errorf("invalid user_id: must be greater than 0")
 	}
 
-	// Validate categories
 	validCategories := map[string]bool{
+		"":           true,
 		"sports_car": true,
 		"formula":    true,
 		"oval":       true,
@@ -158,7 +218,6 @@ func (s *PostService) validateFilters(filters *dto.PostFilters) error {
 		}
 	}
 
-	// Validate status
 	validStatuses := map[string]bool{
 		"open":      true,
 		"filled":    true,
@@ -171,7 +230,6 @@ func (s *PostService) validateFilters(filters *dto.PostFilters) error {
 		}
 	}
 
-	// Validate sort_by
 	if filters.SortBy != "" {
 		validSortFields := map[string]bool{
 			"created_at":     true,
@@ -183,12 +241,10 @@ func (s *PostService) validateFilters(filters *dto.PostFilters) error {
 		}
 	}
 
-	// Validate sort_order
 	if filters.SortOrder != "" && filters.SortOrder != "asc" && filters.SortOrder != "desc" {
 		return fmt.Errorf("invalid sort_order: %s (must be 'asc' or 'desc')", filters.SortOrder)
 	}
 
-	// Validate license level
 	if filters.MinLicenseLevel != "" {
 		validLicenseLevels := map[string]bool{
 			"R": true, "D": true, "C": true, "B": true, "A": true, "P": true,
@@ -198,7 +254,6 @@ func (s *PostService) validateFilters(filters *dto.PostFilters) error {
 		}
 	}
 
-	// Validate iRating range
 	if filters.MinIRating != nil && filters.MaxIRating != nil {
 		if *filters.MinIRating > *filters.MaxIRating {
 			return fmt.Errorf("min_irating (%d) cannot be greater than max_irating (%d)", *filters.MinIRating, *filters.MaxIRating)
@@ -211,7 +266,6 @@ func (s *PostService) validateFilters(filters *dto.PostFilters) error {
 		return fmt.Errorf("max_irating cannot be negative")
 	}
 
-	// Validate date range
 	if filters.EventStartFrom != nil && filters.EventStartTo != nil {
 		if filters.EventStartFrom.After(*filters.EventStartTo) {
 			return fmt.Errorf("event_start_from cannot be after event_start_to")
@@ -242,7 +296,6 @@ func (s *PostService) DeletePost(ctx context.Context, userID, postID int64) erro
 
 // -------------------- DTO variants (public API) --------------------
 
-// GetPostDTO returns a PostDTO with expanded relations (if expand is requested)
 func (s *PostService) GetPostDTO(ctx context.Context, postID int64, expand map[string]bool) (*dto.PostDTO, error) {
 	if postID <= 0 {
 		return nil, fmt.Errorf("invalid post id")
@@ -257,14 +310,11 @@ func (s *PostService) GetPostDTO(ctx context.Context, postID int64, expand map[s
 	return s.buildPostDTO(ctx, p, expand)
 }
 
-// SearchPostsDTO searches posts with filters and returns DTOs with pagination metadata
 func (s *PostService) SearchPostsDTO(ctx context.Context, filters dto.PostFilters, expand map[string]bool) (*dto.PostSearchResponse, error) {
-	// Validate and normalize filters
 	if err := s.validateFilters(&filters); err != nil {
 		return nil, err
 	}
 
-	// Apply default pagination if not set
 	if filters.Limit <= 0 {
 		filters.Limit = 20
 	}
@@ -275,13 +325,11 @@ func (s *PostService) SearchPostsDTO(ctx context.Context, filters dto.PostFilter
 		filters.Offset = 0
 	}
 
-	// Search posts in repository
 	posts, total, err := s.postRepo.SearchPosts(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert to DTOs
 	dtos := make([]*dto.PostDTO, 0, len(posts))
 	for _, p := range posts {
 		d, derr := s.buildPostDTO(ctx, p, expand)
@@ -327,7 +375,52 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 		UpdatedAt:       p.UpdatedAt,
 	}
 
-	// Always fetch car_ids and language_codes (N:M relations)
+	// Fetch multi-select categories
+	if s.postCategoryRepo != nil {
+		catRels, err := s.postCategoryRepo.GetByPostID(ctx, p.ID)
+		if err != nil {
+			return nil, err
+		}
+		if len(catRels) > 0 {
+			cats := make([]string, 0, len(catRels))
+			for _, r := range catRels {
+				cats = append(cats, r.Category)
+			}
+			d.Categories = cats
+		}
+	}
+
+	// Fetch multi-select series IDs
+	if s.postSeriesRepo != nil {
+		seriesRels, err := s.postSeriesRepo.GetByPostID(ctx, p.ID)
+		if err != nil {
+			return nil, err
+		}
+		if len(seriesRels) > 0 {
+			ids := make([]int64, 0, len(seriesRels))
+			for _, r := range seriesRels {
+				ids = append(ids, r.SeriesID)
+			}
+			d.SeriesIDs = ids
+		}
+	}
+
+	// Fetch multi-select car class IDs
+	if s.postCarClassRepo != nil {
+		ccRels, err := s.postCarClassRepo.GetByPostID(ctx, p.ID)
+		if err != nil {
+			return nil, err
+		}
+		if len(ccRels) > 0 {
+			ids := make([]int64, 0, len(ccRels))
+			for _, r := range ccRels {
+				ids = append(ids, r.CarClassID)
+			}
+			d.CarClassIDs = ids
+		}
+	}
+
+	// Fetch multi-select car IDs
 	if s.postCarRepo != nil {
 		carRels, err := s.postCarRepo.GetByPostID(ctx, p.ID)
 		if err != nil {
@@ -341,6 +434,23 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 			d.CarIDs = carIDs
 		}
 	}
+
+	// Fetch multi-select track IDs
+	if s.postTrackRepo != nil {
+		trackRels, err := s.postTrackRepo.GetByPostID(ctx, p.ID)
+		if err != nil {
+			return nil, err
+		}
+		if len(trackRels) > 0 {
+			ids := make([]int64, 0, len(trackRels))
+			for _, r := range trackRels {
+				ids = append(ids, r.TrackID)
+			}
+			d.TrackIDs = ids
+		}
+	}
+
+	// Fetch language codes
 	if s.postLangRepo != nil {
 		langRels, err := s.postLangRepo.GetByPostID(ctx, p.ID)
 		if err != nil {
@@ -359,7 +469,6 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 	if len(expand) > 0 {
 		included := &dto.PostIncludedDTO{}
 
-		// Expand event
 		if expand["event"] && p.EventID != nil && s.eventRepo != nil {
 			item, err := s.eventRepo.GetByID(ctx, *p.EventID)
 			if err != nil {
@@ -368,7 +477,6 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 			included.Event = item
 		}
 
-		// Expand series
 		if expand["series"] && p.SeriesID != nil && s.seriesRepo != nil {
 			item, err := s.seriesRepo.GetByID(ctx, *p.SeriesID)
 			if err != nil {
@@ -377,7 +485,6 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 			included.Series = item
 		}
 
-		// Expand car_class
 		if expand["car_class"] && p.CarClassID != nil && s.carClassRepo != nil {
 			item, err := s.carClassRepo.GetByID(ctx, *p.CarClassID)
 			if err != nil {
@@ -386,7 +493,6 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 			included.CarClass = item
 		}
 
-		// Expand track
 		if expand["track"] && p.TrackID != nil && s.trackRepo != nil {
 			item, err := s.trackRepo.GetByID(ctx, *p.TrackID)
 			if err != nil {
@@ -395,7 +501,6 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 			included.Track = item
 		}
 
-		// Expand cars (N:M) - use already fetched car_ids
 		if expand["cars"] && s.carRepo != nil && len(d.CarIDs) > 0 {
 			cars := make([]*model.Car, 0, len(d.CarIDs))
 			for _, carID := range d.CarIDs {
@@ -410,9 +515,7 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 			included.Cars = cars
 		}
 
-		// Expand languages (N:M) - use already fetched language_codes
 		if expand["languages"] && s.userLangRepo != nil && len(d.LanguageCodes) > 0 {
-			// Build a map[code]Language from full catalog for quick lookup
 			catalog, cerr := s.userLangRepo.GetAllLanguages(ctx)
 			if cerr != nil {
 				return nil, cerr
@@ -430,9 +533,54 @@ func (s *PostService) buildPostDTO(ctx context.Context, p *model.Post, expand ma
 			included.Languages = langs
 		}
 
-		// Only set included if at least one relation was expanded
+		// Expand all_series from multi-select
+		if expand["series"] && s.seriesRepo != nil && len(d.SeriesIDs) > 0 {
+			allSeries := make([]*model.Series, 0, len(d.SeriesIDs))
+			for _, sid := range d.SeriesIDs {
+				item, serr := s.seriesRepo.GetByID(ctx, sid)
+				if serr != nil {
+					return nil, serr
+				}
+				if item != nil {
+					allSeries = append(allSeries, item)
+				}
+			}
+			included.AllSeries = allSeries
+		}
+
+		// Expand car_classes from multi-select
+		if expand["car_class"] && s.carClassRepo != nil && len(d.CarClassIDs) > 0 {
+			carClasses := make([]*model.CarClass, 0, len(d.CarClassIDs))
+			for _, ccid := range d.CarClassIDs {
+				item, cerr := s.carClassRepo.GetByID(ctx, ccid)
+				if cerr != nil {
+					return nil, cerr
+				}
+				if item != nil {
+					carClasses = append(carClasses, item)
+				}
+			}
+			included.CarClasses = carClasses
+		}
+
+		// Expand tracks from multi-select
+		if expand["track"] && s.trackRepo != nil && len(d.TrackIDs) > 0 {
+			tracks := make([]*model.Track, 0, len(d.TrackIDs))
+			for _, tid := range d.TrackIDs {
+				item, terr := s.trackRepo.GetByID(ctx, tid)
+				if terr != nil {
+					return nil, terr
+				}
+				if item != nil {
+					tracks = append(tracks, item)
+				}
+			}
+			included.Tracks = tracks
+		}
+
 		if included.Event != nil || included.Series != nil || included.CarClass != nil ||
-			included.Track != nil || len(included.Cars) > 0 || len(included.Languages) > 0 {
+			included.Track != nil || len(included.Cars) > 0 || len(included.Languages) > 0 ||
+			len(included.AllSeries) > 0 || len(included.CarClasses) > 0 || len(included.Tracks) > 0 {
 			d.Included = included
 		}
 	}
