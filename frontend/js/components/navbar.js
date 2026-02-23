@@ -55,6 +55,14 @@ export function renderNavbar() {
                                 <a href="#/posts/create" data-auth-required class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
                                     Create Post
                                 </a>
+                                ${user ? `
+                                <a href="#/my-posts" class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
+                                    My Posts
+                                </a>
+                                <a href="#/my-applications" class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
+                                    My Applications
+                                </a>
+                                ` : ''}
                             </div>
                         </div>
                         <div class="flex items-center">
@@ -81,18 +89,6 @@ export function renderNavbar() {
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                                 </svg>
                                                 My Profile
-                                            </a>
-                                            <a href="#/my-posts" class="profile-menu-item flex items-center gap-2.5 px-3.5 py-2 text-sm text-content-secondary hover:text-content-primary hover:bg-surface-50 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                                                </svg>
-                                                My Posts
-                                            </a>
-                                            <a href="#/my-applications" class="profile-menu-item flex items-center gap-2.5 px-3.5 py-2 text-sm text-content-secondary hover:text-content-primary hover:bg-surface-50 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                                </svg>
-                                                My Applications
                                             </a>
                                         </div>
                                         <div class="border-t border-surface-100 pt-1">

@@ -144,6 +144,24 @@ export async function render(container, params) {
                     }
                 });
             });
+
+            // Reset to pending buttons
+            applicationsList.querySelectorAll('.pending-application-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const applicationId = btn.dataset.applicationId;
+                    btn.disabled = true;
+
+                    try {
+                        await updateApplicationStatus(postId, applicationId, 'pending');
+                        toast.success('Application reset to pending');
+                        await loadApplications(currentStatus || null);
+                    } catch (error) {
+                        console.error('Failed to reset application:', error);
+                        toast.error('Failed to reset application');
+                        btn.disabled = false;
+                    }
+                });
+            });
         }
 
         // Status filter buttons

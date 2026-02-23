@@ -192,8 +192,8 @@ func (h *PostApplicationHandler) UpdateStatus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 	}
 
-	if req.Status != "accepted" && req.Status != "rejected" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid status (must be 'accepted' or 'rejected')"})
+	if req.Status != "accepted" && req.Status != "rejected" && req.Status != "pending" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid status (must be 'accepted', 'rejected' or 'pending')"})
 	}
 
 	userIDAny := c.Get("user_id")
@@ -203,9 +203,6 @@ func (h *PostApplicationHandler) UpdateStatus(c echo.Context) error {
 	if err != nil {
 		if err == service.ErrApplicationNotFound {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
-		}
-		if err == service.ErrApplicationNotPending {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 		if err == service.ErrPostNotFound {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})

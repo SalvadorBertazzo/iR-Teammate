@@ -2,62 +2,130 @@
 import { escapeHtml } from '../utils/dom.js';
 import { formatRelativeTime, formatStatus, getStatusClass } from '../utils/format.js';
 
+const STATUS_CONFIG = {
+    pending: {
+        cardClass: 'application-card--pending',
+        icon: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+               </svg>`,
+        label: 'Pending review',
+        labelClass: 'application-status-label--pending',
+    },
+    accepted: {
+        cardClass: 'application-card--accepted',
+        icon: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+               </svg>`,
+        label: 'Accepted',
+        labelClass: 'application-status-label--accepted',
+    },
+    rejected: {
+        cardClass: 'application-card--rejected',
+        icon: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+               </svg>`,
+        label: 'Rejected',
+        labelClass: 'application-status-label--rejected',
+    },
+};
+
 export function renderApplicationCard(application, showPost = false, showActions = false) {
     const included = application.included || {};
     const applicant = included.applicant;
     const post = included.post;
-    const statusClass = getStatusClass(application.status);
-    const statusLabel = formatStatus(application.status);
+    const config = STATUS_CONFIG[application.status] || STATUS_CONFIG.pending;
 
     return `
-        <div class="bg-white rounded-xl p-4 border border-surface-200 shadow-soft" data-application-id="${application.id}">
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-3">
-                    ${applicant ? `
-                        <div class="w-10 h-10 rounded-full bg-brand-100 border border-brand-200 flex items-center justify-center">
-                            <span class="text-lg font-medium text-brand-600">
-                                ${applicant.username.charAt(0).toUpperCase()}
-                            </span>
-                        </div>
-                        <div>
-                            <a href="#/users/${applicant.id}" class="font-medium text-content-primary hover:text-brand-600 transition-colors">
-                                ${escapeHtml(applicant.username)}
-                            </a>
-                            <p class="text-sm text-content-muted">${formatRelativeTime(application.created_at)}</p>
-                        </div>
-                    ` : `
-                        <div class="text-content-muted">Applicant</div>
-                    `}
-                </div>
-                <span class="px-2.5 py-1 rounded-md text-xs font-medium ${statusClass}">
-                    ${statusLabel}
-                </span>
+        <div class="application-card ${config.cardClass}" data-application-id="${application.id}">
+            <!-- Header: avatar + name + time -->
+            <div class="flex items-center gap-3 mb-3">
+                ${applicant ? `
+                    <div class="w-9 h-9 rounded-full bg-brand-100 border border-brand-200 flex items-center justify-center flex-shrink-0">
+                        <span class="text-sm font-semibold text-brand-600">
+                            ${applicant.username.charAt(0).toUpperCase()}
+                        </span>
+                    </div>
+                    <div>
+                        <a href="#/users/${applicant.id}" class="font-semibold text-content-primary hover:text-brand-600 transition-colors text-sm">
+                            ${escapeHtml(applicant.username)}
+                        </a>
+                        <p class="text-xs text-content-muted">${formatRelativeTime(application.created_at)}</p>
+                    </div>
+                ` : `
+                    <div class="text-content-muted text-sm">Unknown applicant</div>
+                `}
             </div>
 
             ${application.message ? `
-                <p class="text-content-secondary mb-3 whitespace-pre-wrap">${escapeHtml(application.message)}</p>
+                <p class="text-sm text-content-secondary mb-4 whitespace-pre-wrap leading-relaxed">${escapeHtml(application.message)}</p>
             ` : ''}
 
             ${showPost && post ? `
-                <div class="bg-surface-50 rounded-lg p-3 mb-3 border border-surface-200">
-                    <a href="#/posts/${post.id}" class="text-brand-600 hover:text-brand-700 font-medium transition-colors">
+                <div class="bg-surface-50 rounded-lg p-3 mb-4 border border-surface-200">
+                    <a href="#/posts/${post.id}" class="text-brand-600 hover:text-brand-700 font-medium text-sm transition-colors">
                         ${escapeHtml(post.title)}
                     </a>
                 </div>
             ` : ''}
 
-            ${showActions && application.status === 'pending' ? `
-                <div class="flex gap-2 pt-3 border-t border-surface-200">
-                    <button class="accept-application-btn flex-1 btn-success font-medium py-2 px-4 rounded-lg"
-                        data-post-id="${application.post_id}" data-application-id="${application.id}">
-                        Accept
-                    </button>
-                    <button class="reject-application-btn flex-1 btn-danger font-medium py-2 px-4 rounded-lg"
-                        data-post-id="${application.post_id}" data-application-id="${application.id}">
-                        Reject
-                    </button>
-                </div>
-            ` : ''}
+            <!-- Footer: current status (left) + actions (right) -->
+            <div class="flex items-center justify-between pt-3 border-t ${config.cardClass === 'application-card--accepted' ? 'border-green-200' : config.cardClass === 'application-card--rejected' ? 'border-red-200' : 'border-surface-200'}">
+                <span class="application-status-label ${config.labelClass}">
+                    ${config.icon}
+                    ${config.label}
+                </span>
+
+                ${showActions ? `
+                    <div class="flex gap-2">
+                        ${application.status === 'pending' ? `
+                            <button class="accept-application-btn btn-success-outline text-xs font-medium py-1.5 px-3 rounded-lg flex items-center gap-1.5"
+                                data-post-id="${application.post_id}" data-application-id="${application.id}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Accept
+                            </button>
+                            <button class="reject-application-btn btn-danger-outline text-xs font-medium py-1.5 px-3 rounded-lg flex items-center gap-1.5"
+                                data-post-id="${application.post_id}" data-application-id="${application.id}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                Reject
+                            </button>
+                        ` : application.status === 'accepted' ? `
+                            <button class="reject-application-btn btn-danger-outline text-xs font-medium py-1.5 px-3 rounded-lg flex items-center gap-1.5"
+                                data-post-id="${application.post_id}" data-application-id="${application.id}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                Reject
+                            </button>
+                            <button class="pending-application-btn btn-secondary text-xs font-medium py-1.5 px-3 rounded-lg flex items-center gap-1.5"
+                                data-post-id="${application.post_id}" data-application-id="${application.id}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                </svg>
+                                Undo
+                            </button>
+                        ` : application.status === 'rejected' ? `
+                            <button class="accept-application-btn btn-success-outline text-xs font-medium py-1.5 px-3 rounded-lg flex items-center gap-1.5"
+                                data-post-id="${application.post_id}" data-application-id="${application.id}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Accept
+                            </button>
+                            <button class="pending-application-btn btn-secondary text-xs font-medium py-1.5 px-3 rounded-lg flex items-center gap-1.5"
+                                data-post-id="${application.post_id}" data-application-id="${application.id}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                </svg>
+                                Undo
+                            </button>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            </div>
         </div>
     `;
 }

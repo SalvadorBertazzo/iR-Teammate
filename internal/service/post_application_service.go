@@ -174,11 +174,11 @@ func (s *PostApplicationService) ListByApplicant(ctx context.Context, applicantI
 }
 
 // UpdateStatus updates the status of an application (accept/reject)
-// Only the post owner can update status, and only pending applications can be updated
+// Only the post owner can update status
 func (s *PostApplicationService) UpdateStatus(ctx context.Context, id int64, status string, userID int64) (*dto.PostApplicationDTO, error) {
 	// Validate status
-	if status != "accepted" && status != "rejected" {
-		return nil, fmt.Errorf("invalid status: %s (must be 'accepted' or 'rejected')", status)
+	if status != "accepted" && status != "rejected" && status != "pending" {
+		return nil, fmt.Errorf("invalid status: %s (must be 'accepted', 'rejected' or 'pending')", status)
 	}
 
 	// Get application
@@ -188,11 +188,6 @@ func (s *PostApplicationService) UpdateStatus(ctx context.Context, id int64, sta
 	}
 	if app == nil {
 		return nil, ErrApplicationNotFound
-	}
-
-	// Validate application is pending
-	if app.Status != "pending" {
-		return nil, ErrApplicationNotPending
 	}
 
 	// Validate post exists and user is owner
