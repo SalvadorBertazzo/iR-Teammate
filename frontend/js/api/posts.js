@@ -1,7 +1,7 @@
 // Posts API functions
 import { get, post, put, del } from './client.js';
 
-const EXPAND_ALL = 'event,series,car_class,track,cars,languages';
+const EXPAND_ALL = 'event,series,car_class,car_classes,track,cars,languages';
 
 export async function listPublicPosts(filters = {}) {
     const params = {

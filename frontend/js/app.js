@@ -4,6 +4,7 @@ import { getMe } from './api/auth.js';
 import { loadCatalogs } from './api/catalogs.js';
 import { renderNavbar } from './components/navbar.js';
 import { renderLoading } from './components/loading.js';
+import { initTheme } from './utils/theme.js';
 
 // Import pages
 import * as homePage from './pages/home.js';
@@ -18,6 +19,7 @@ import * as userProfilePage from './pages/user-profile.js';
 import * as notFoundPage from './pages/not-found.js';
 
 async function init() {
+    initTheme(); // Apply saved theme before any render to avoid flash
     const main = document.getElementById('main');
     main.innerHTML = renderLoading('Loading...');
 

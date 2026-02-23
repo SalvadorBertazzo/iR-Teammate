@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#f7f5f2">
     <title>iR-Teammate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -15,37 +15,43 @@
                 extend: {
                     colors: {
                         'brand': {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
+                            50:  '#eff4ff',
+                            100: '#dce8fd',
+                            200: '#b9d0fb',
+                            500: '#2056b8',
+                            600: '#1845a0',
+                            700: '#113488',
                         },
                         'surface': {
-                            0: '#ffffff',
-                            50: '#f8fafc',
-                            100: '#f1f5f9',
-                            200: '#e2e8f0',
-                            300: '#cbd5e1',
+                            0:   '#f7f5f2',
+                            50:  '#faf9f7',
+                            100: '#f0ede8',
+                            200: '#e1dcd5',
+                            300: '#c8c2b9',
                         },
                         'content': {
-                            primary: '#0f172a',
-                            secondary: '#475569',
-                            muted: '#94a3b8',
+                            primary:   '#1c1a17',
+                            secondary: '#6b635a',
+                            muted:     '#9c9189',
                         }
                     },
                     fontFamily: {
-                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'sans':    ['DM Sans', 'system-ui', 'sans-serif'],
+                        'display': ['Barlow Condensed', 'system-ui', 'sans-serif'],
                     },
                     boxShadow: {
-                        'soft': '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)',
-                        'medium': '0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04)',
-                        'elevated': '0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)',
+                        'soft':     '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+                        'medium':   '0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
+                        'elevated': '0 12px 28px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06)',
+                        'brand':    '0 4px 14px rgba(32,86,184,0.3)',
                     },
                     borderRadius: {
-                        'xl': '1rem',
+                        'xl':  '1rem',
                         '2xl': '1.25rem',
+                        '3xl': '1.5rem',
+                    },
+                    transitionTimingFunction: {
+                        'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
                     }
                 }
             }
@@ -53,7 +59,7 @@
     </script>
     <link rel="stylesheet" href="css/app.css">
 </head>
-<body class="bg-surface-50 text-content-primary min-h-screen font-sans antialiased">
+<body class="bg-surface-0 text-content-primary min-h-screen font-sans antialiased">
     <div id="app">
         <nav id="navbar"></nav>
         <main id="main" class="container mx-auto px-4 py-6 pt-20"></main>
