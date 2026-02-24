@@ -7,6 +7,7 @@ import { renderLoading } from './components/loading.js';
 import { initTheme } from './utils/theme.js';
 
 // Import pages
+import * as landingPage from './pages/landing.js';
 import * as homePage from './pages/home.js';
 import * as postDetailPage from './pages/post-detail.js';
 import * as postCreatePage from './pages/post-create.js';
@@ -34,7 +35,8 @@ async function init() {
         renderNavbar();
 
         // Register routes
-        addRoute('/', homePage.render);
+        addRoute('/', landingPage.render);
+        addRoute('/browse', homePage.render);
         addRoute('/posts/create', postCreatePage.render);
         addRoute('/posts/:id', postDetailPage.render);
         addRoute('/posts/:id/edit', postEditPage.render);

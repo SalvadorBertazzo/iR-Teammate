@@ -57,7 +57,7 @@ export function renderNavbar() {
                             </a>
 
                             <div class="hidden md:flex items-center gap-1">
-                                <a href="#/" class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
+                                <a href="#/browse" class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
                                     Find Teammates
                                 </a>
                                 <a href="#/posts/create" data-auth-required class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
@@ -155,7 +155,7 @@ export function renderNavbar() {
                 <!-- Mobile menu -->
                 <div class="md:hidden border-t border-surface-200">
                     <div class="px-2 pt-2 pb-3 space-y-1">
-                        <a href="#/" class="text-content-secondary hover:text-content-primary hover:bg-surface-100 block px-3 py-2 rounded-lg text-base font-medium transition-colors">
+                        <a href="#/browse" class="text-content-secondary hover:text-content-primary hover:bg-surface-100 block px-3 py-2 rounded-lg text-base font-medium transition-colors">
                             Find Teammates
                         </a>
                         <a href="#/posts/create" data-auth-required class="text-content-secondary hover:text-content-primary hover:bg-surface-100 block px-3 py-2 rounded-lg text-base font-medium transition-colors">
