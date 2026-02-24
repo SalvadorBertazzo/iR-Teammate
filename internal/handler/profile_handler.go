@@ -164,12 +164,3 @@ func (h *ProfileHandler) UpsertLanguages(c echo.Context) error {
 	return c.JSON(http.StatusOK, languages)
 }
 
-// GET /languages - get all available languages catalog
-func (h *ProfileHandler) GetAllLanguages(c echo.Context) error {
-	languages, err := h.service.GetAllLanguages(c.Request().Context())
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, languages)
-}

@@ -40,11 +40,11 @@ type createCommentRequest struct {
 func (h *CommentHandler) CreateRoot(c echo.Context) error {
 	var postID int64
 	if _, err := fmt.Sscan(c.Param("id"), &postID); err != nil || postID <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid post id"})
 	}
 	var req createCommentRequest
 	if err := c.Bind(&req); err != nil || strings.TrimSpace(req.Body) == "" {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "comment body is required"})
 	}
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
@@ -58,21 +58,21 @@ func (h *CommentHandler) CreateRoot(c echo.Context) error {
 func (h *CommentHandler) CreateReply(c echo.Context) error {
 	var postID, parentID int64
 	if _, err := fmt.Sscan(c.Param("id"), &postID); err != nil || postID <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid post id"})
 	}
 	if _, err := fmt.Sscan(c.Param("comment_id"), &parentID); err != nil || parentID <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid comment id"})
 	}
 	var req createCommentRequest
 	if err := c.Bind(&req); err != nil || strings.TrimSpace(req.Body) == "" {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "comment body is required"})
 	}
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
 	dtoItem, err := h.service.CreateReply(c.Request().Context(), postID, parentID, userID, req.Body)
 	if err != nil {
 		if err == service.ErrNotFound {
-			return c.NoContent(http.StatusNotFound)
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "comment not found"})
 		}
 		if err == service.ErrInvalidDepth {
 			return c.String(http.StatusBadRequest, err.Error())
@@ -85,7 +85,7 @@ func (h *CommentHandler) CreateReply(c echo.Context) error {
 func (h *CommentHandler) ListByPost(c echo.Context) error {
 	var postID int64
 	if _, err := fmt.Sscan(c.Param("id"), &postID); err != nil || postID <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid post id"})
 	}
 	expand := parseCommentsExpand(c.QueryParam("expand"))
 	items, err := h.service.ListByPost(c.Request().Context(), postID, expand)
@@ -98,19 +98,19 @@ func (h *CommentHandler) ListByPost(c echo.Context) error {
 func (h *CommentHandler) Delete(c echo.Context) error {
 	var postID, commentID int64
 	if _, err := fmt.Sscan(c.Param("id"), &postID); err != nil || postID <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid post id"})
 	}
 	if _, err := fmt.Sscan(c.Param("comment_id"), &commentID); err != nil || commentID <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid comment id"})
 	}
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
 	ok, err := h.service.SoftDelete(c.Request().Context(), commentID, userID)
 	if err != nil {
-		return c.NoContent(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal server error"})
 	}
 	if !ok {
-		return c.NoContent(http.StatusForbidden)
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
 	return c.NoContent(http.StatusNoContent)
 }

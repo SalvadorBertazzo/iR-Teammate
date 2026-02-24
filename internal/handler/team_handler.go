@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"iR-Teammate/internal/service"
 
@@ -122,7 +123,9 @@ func (h *TeamHandler) ListMessages(c echo.Context) error {
 
 	var afterID int64
 	if after := c.QueryParam("after"); after != "" {
-		fmt.Sscan(after, &afterID)
+		if _, err := fmt.Sscan(after, &afterID); err != nil || afterID < 0 {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid after parameter"})
+		}
 	}
 
 	messages, err := h.service.ListMessages(c.Request().Context(), postID, userID, afterID)
@@ -156,7 +159,7 @@ func (h *TeamHandler) CreateMessage(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 	}
 
-	if req.Body == "" {
+	if strings.TrimSpace(req.Body) == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "message body cannot be empty"})
 	}
 

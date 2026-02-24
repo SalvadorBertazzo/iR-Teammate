@@ -302,7 +302,13 @@ type updatePostRequest struct {
 func (h *PostHandler) Create(c echo.Context) error {
 	var req createPostRequest
 	if err := c.Bind(&req); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+	}
+	if strings.TrimSpace(req.Title) == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "title is required"})
+	}
+	if strings.TrimSpace(req.Body) == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "body is required"})
 	}
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
@@ -347,15 +353,15 @@ func (h *PostHandler) Create(c echo.Context) error {
 func (h *PostHandler) Update(c echo.Context) error {
 	var req updatePostRequest
 	if err := c.Bind(&req); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 	}
 	idParam := c.Param("id")
 	if idParam == "" {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "missing post id"})
 	}
 	var id int64
 	if _, err := fmt.Sscan(idParam, &id); err != nil || id <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid post id"})
 	}
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)
@@ -363,7 +369,7 @@ func (h *PostHandler) Update(c echo.Context) error {
 	// Fetch existing post to use as base for partial updates
 	existing, err := h.service.GetPost(c.Request().Context(), id)
 	if err != nil || existing == nil {
-		return c.NoContent(http.StatusNotFound)
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "post not found"})
 	}
 
 	// Merge: use request values if provided, otherwise keep existing
@@ -443,19 +449,19 @@ func orIntPositive(val, fallback int) int {
 func (h *PostHandler) Get(c echo.Context) error {
 	idParam := c.Param("id")
 	if idParam == "" {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "missing post id"})
 	}
 	var id int64
 	if _, err := fmt.Sscan(idParam, &id); err != nil || id <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid post id"})
 	}
 	expand := parseExpand(c.QueryParam("expand"))
 	post, err := h.service.GetPostDTO(c.Request().Context(), id, expand)
 	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	if post == nil {
-		return c.NoContent(http.StatusNotFound)
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "post not found"})
 	}
 	return c.JSON(http.StatusOK, post)
 }
@@ -463,11 +469,11 @@ func (h *PostHandler) Get(c echo.Context) error {
 func (h *PostHandler) Delete(c echo.Context) error {
 	idParam := c.Param("id")
 	if idParam == "" {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "missing post id"})
 	}
 	var id int64
 	if _, err := fmt.Sscan(idParam, &id); err != nil || id <= 0 {
-		return c.NoContent(http.StatusBadRequest)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid post id"})
 	}
 	userIDAny := c.Get("user_id")
 	userID, _ := userIDAny.(int64)

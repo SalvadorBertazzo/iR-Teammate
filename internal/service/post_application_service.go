@@ -71,11 +71,12 @@ func (s *PostApplicationService) CreateApplication(ctx context.Context, postID i
 		return nil, fmt.Errorf("failed to create application: %w", err)
 	}
 
-	app.ID = id
-	app.CreatedAt = time.Now().UTC()
-	app.UpdatedAt = time.Now().UTC()
+	created, err := s.appRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get created application: %w", err)
+	}
 
-	return s.buildDTO(ctx, app, nil)
+	return s.buildDTO(ctx, created, nil)
 }
 
 // GetApplicationByID returns an application by ID
