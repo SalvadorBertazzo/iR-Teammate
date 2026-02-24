@@ -249,6 +249,12 @@ export async function render(container, params) {
                             </select>
                             <a href="#/posts/${post.id}/edit" class="btn-secondary text-sm font-medium py-2 px-4 rounded-lg">Edit Post</a>
                             <a href="#/posts/${post.id}/applications" class="btn-secondary text-sm font-medium py-2 px-4 rounded-lg">View Applications</a>
+                            <a href="#/my-teams/${post.id}" class="btn-primary text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Team Space
+                            </a>
                         ` : `
                             ${post.status === 'open' ? `
                                 <button id="apply-btn" class="btn-primary text-sm font-medium py-2 px-5 rounded-lg">Apply to Join</button>

@@ -110,6 +110,26 @@ func (r *PostRepository) Delete(ctx context.Context, id int64) error {
 	return err
 }
 
+// ListByUser returns all posts owned by a user, ordered newest first
+func (r *PostRepository) ListByUser(ctx context.Context, userID int64) ([]*model.Post, error) {
+	var posts []*model.Post
+	err := r.db.SelectContext(ctx, &posts, `
+		SELECT id, user_id, title, body,
+		       event_id, series_id, car_class_id, track_id,
+		       category, min_license_level, min_irating,
+		       timezone, event_start_at,
+		       slots_total, status, is_public, contact_hint,
+		       created_at, updated_at
+		FROM posts
+		WHERE user_id = ?
+		ORDER BY created_at DESC
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
 // SearchPosts searches posts with filters, pagination, and sorting
 // Returns posts and total count
 func (r *PostRepository) SearchPosts(ctx context.Context, filters dto.PostFilters) ([]*model.Post, int64, error) {

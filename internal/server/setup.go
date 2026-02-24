@@ -23,6 +23,7 @@ type Dependencies struct {
 	PostHandler            *handler.PostHandler
 	CommentHandler         *handler.CommentHandler
 	PostApplicationHandler *handler.PostApplicationHandler
+	TeamHandler            *handler.TeamHandler
 }
 
 func Setup(config config.Config) (*Dependencies, error) {
@@ -52,6 +53,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 	postLanguageRepository := repository.NewPostLanguageRepository(sqlxDB)
 	commentRepository := repository.NewCommentRepository(sqlxDB)
 	postApplicationRepository := repository.NewPostApplicationRepository(sqlxDB)
+	teamRepository := repository.NewTeamRepository(sqlxDB)
 	catalogRelationshipRepository := repository.NewCatalogRelationshipRepository(sqlxDB)
 	postCategoryRepository := repository.NewPostCategoryRepository(sqlxDB)
 	postSeriesRepository := repository.NewPostSeriesRepository(sqlxDB)
@@ -79,6 +81,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 	)
 	commentService := service.NewCommentService(commentRepository, userRepository)
 	postApplicationService := service.NewPostApplicationService(postApplicationRepository, postRepository, userRepository)
+	teamService := service.NewTeamService(teamRepository, postApplicationRepository, postRepository, userRepository)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
@@ -87,6 +90,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 	postHandler := handler.NewPostHandler(postService)
 	commentHandler := handler.NewCommentHandler(commentService)
 	postApplicationHandler := handler.NewPostApplicationHandler(postApplicationService)
+	teamHandler := handler.NewTeamHandler(teamService)
 
 	return &Dependencies{
 		Config:                 config,
@@ -98,6 +102,7 @@ func Setup(config config.Config) (*Dependencies, error) {
 		PostHandler:            postHandler,
 		CommentHandler:         commentHandler,
 		PostApplicationHandler: postApplicationHandler,
+		TeamHandler:            teamHandler,
 	}, nil
 }
 

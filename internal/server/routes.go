@@ -20,6 +20,7 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	postHandler := dependencies.PostHandler
 	commentHandler := dependencies.CommentHandler
 	postApplicationHandler := dependencies.PostApplicationHandler
+	teamHandler := dependencies.TeamHandler
 
 	// Auth routes (public)
 	authPublic := e.Group("/auth")                                   // Public auth route GROUP (Base: http://localhost:8080/auth)
@@ -86,4 +87,15 @@ func RegisterRoutes(e *echo.Echo, dependencies *Dependencies) {
 	// Applications routes (protected)
 	applicationsProtected := e.Group("/applications", jwtMiddleware)           // Protected applications route GROUP
 	applicationsProtected.GET("/mine", postApplicationHandler.ListByApplicant) // List current user's applications (Example: GET http://localhost:8080/applications/mine)
+
+	// Team routes (protected — only team members can access)
+	postsProtected.GET("/:id/team", teamHandler.GetTeam)                              // Get team info (members) (Example: GET http://localhost:8080/posts/1/team)
+	postsProtected.DELETE("/:id/team", teamHandler.DeleteTeam)                        // Delete team (Example: DELETE http://localhost:8080/posts/1/team)
+	postsProtected.GET("/:id/team/messages", teamHandler.ListMessages)                // List chat messages (Example: GET http://localhost:8080/posts/1/team/messages?after=0)
+	postsProtected.POST("/:id/team/messages", teamHandler.CreateMessage)              // Send a chat message (Example: POST http://localhost:8080/posts/1/team/messages)
+	postsProtected.DELETE("/:id/team/members/:user_id", teamHandler.RemoveMember)     // Remove/leave team (Example: DELETE http://localhost:8080/posts/1/team/members/5)
+
+	// My teams (protected)
+	teamsProtected := e.Group("/teams", jwtMiddleware)
+	teamsProtected.GET("/mine", teamHandler.GetMyTeams) // List all teams the user belongs to (Example: GET http://localhost:8080/teams/mine)
 }

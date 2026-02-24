@@ -70,6 +70,9 @@ export function renderNavbar() {
                                 <a href="#/my-applications" class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
                                     My Applications
                                 </a>
+                                <a href="#/my-teams" class="text-content-secondary hover:text-content-primary px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-surface-100">
+                                    My Teams
+                                </a>
                                 ` : ''}
                             </div>
                         </div>
@@ -167,6 +170,11 @@ export function renderNavbar() {
                         <a href="#/my-applications" data-auth-required class="text-content-secondary hover:text-content-primary hover:bg-surface-100 block px-3 py-2 rounded-lg text-base font-medium transition-colors">
                             My Applications
                         </a>
+                        ${user ? `
+                        <a href="#/my-teams" class="text-content-secondary hover:text-content-primary hover:bg-surface-100 block px-3 py-2 rounded-lg text-base font-medium transition-colors">
+                            My Teams
+                        </a>
+                        ` : ''}
                     </div>
                 </div>
             </nav>

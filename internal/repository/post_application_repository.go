@@ -98,6 +98,14 @@ func (r *PostApplicationRepository) ListByApplicant(ctx context.Context, applica
 	return items, nil
 }
 
+func (r *PostApplicationRepository) DeleteByPostAndApplicant(ctx context.Context, postID int64, applicantID int64) error {
+	_, err := r.db.ExecContext(ctx, `
+		DELETE FROM post_applications
+		WHERE post_id = ? AND applicant_id = ?
+	`, postID, applicantID)
+	return err
+}
+
 func (r *PostApplicationRepository) UpdateStatus(ctx context.Context, id int64, status string) error {
 	_, err := r.db.ExecContext(ctx, `
 		UPDATE post_applications

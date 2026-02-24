@@ -17,6 +17,8 @@ import * as myApplicationsPage from './pages/my-applications.js';
 import * as postApplicationsPage from './pages/post-applications.js';
 import * as profilePage from './pages/profile.js';
 import * as userProfilePage from './pages/user-profile.js';
+import * as teamPage from './pages/team.js';
+import * as myTeamsPage from './pages/my-teams.js';
 import * as notFoundPage from './pages/not-found.js';
 
 async function init() {
@@ -45,6 +47,9 @@ async function init() {
         addRoute('/my-applications', myApplicationsPage.render);
         addRoute('/profile', profilePage.render);
         addRoute('/users/:id', userProfilePage.render);
+        addRoute('/posts/:id/team', teamPage.render);
+        addRoute('/my-teams', myTeamsPage.render);
+        addRoute('/my-teams/:id', myTeamsPage.render);
 
         // Set 404 handler
         setNotFound(notFoundPage.render);
